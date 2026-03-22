@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2a5c2a">
+<meta name="description" content="AgriSmart Connect PLUS — Farm to Table Marketplace">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgriSmart">
+<link rel="manifest" id="pwaManifest">
+<title>AgriSmart Connect PLUS 🌱</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Firebase v10 modular SDK via compat layer for simplicity -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --leaf:#2a5c2a;--leaf2:#3d7a3d;--leaf3:#5aad3a;--leaf4:#8fd44f;
+  --soil:#6b4c2a;--pollen:#d4a228;--sky:#3b82c4;--berry:#c0392b;
+  --lavender:#7c5cbf;--mint:#1a8c6b;--orange:#e07820;
+  --cream:#faf6ef;--parchment:#f0e8d8;--sand:#e5d8c4;
+  --dark:#1a2e1a;--mid:#4a5e3a;--muted:#7a8c6a;--faint:#a8b89a;
+  --white:#fff;--border:rgba(42,92,42,0.12);--border2:rgba(42,92,42,0.07);
+  --sh1:0 2px 8px rgba(42,92,42,0.08);--sh2:0 6px 24px rgba(42,92,42,0.12);--sh3:0 16px 48px rgba(42,92,42,0.16);
+  --r:14px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);min-height:100vh;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232a5c2a' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.screen{display:none;position:relative;z-index:1}
+.screen.active{display:block}
+
+/* ── LANGUAGE SWITCHER ── */
+.lang-bar{position:fixed;top:0;right:0;z-index:999;display:flex;gap:3px;padding:8px 14px;background:rgba(250,246,239,0.9);backdrop-filter:blur(12px);border-bottom-left-radius:12px;border:1px solid var(--border);border-top:none;border-right:none}
+.lang-btn{padding:4px 9px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;color:var(--muted)}
+.lang-btn.active{background:var(--leaf);border-color:var(--leaf);color:#fff}
+
+/* ── FIREBASE STATUS BANNER ── */
+.fb-banner{display:none;background:linear-gradient(135deg,#1a4a7c,#2196f3);color:#fff;padding:8px 20px;font-size:12px;font-weight:600;text-align:center;position:relative;z-index:50;align-items:center;justify-content:center;gap:8px}
+.fb-banner.show{display:flex}
+.fb-banner.offline{background:linear-gradient(135deg,#7a5c2a,var(--pollen))}
+.fb-banner.error{background:linear-gradient(135deg,#8b1a1a,var(--berry))}
+
+/* ── AUTH ── */
+#authScreen{min-height:100vh;display:none;align-items:stretch}
+#authScreen.active{display:flex}
+.auth-left{flex:1;background:linear-gradient(155deg,#1a3218 0%,#2a5c2a 40%,#1a4a30 75%,#0f2d1a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 44px;color:#fff;position:relative;overflow:hidden}
+.auth-left::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ffffff08' d='M37.5,-48.1C47.5,-38.6,53.6,-24.7,56.1,-10.3C58.6,4.1,57.4,19,51.2,31.8C45,44.6,33.7,55.3,19.8,61.3C5.9,67.4,-10.5,68.7,-25.2,63.7C-39.9,58.7,-52.9,47.4,-59.9,33.1C-66.9,18.8,-67.9,1.5,-63.1,-13.2C-58.3,-27.9,-47.7,-40,-35.4,-49.4C-23.2,-58.8,-9.2,-65.4,3.2,-69.5C15.7,-73.6,27.5,-57.6,37.5,-48.1Z' transform='translate(100 100)'/%3E%3C/svg%3E") no-repeat center/cover;pointer-events:none}
+.auth-left::after{content:'🌾';position:absolute;right:-40px;bottom:-60px;font-size:260px;opacity:0.05;transform:rotate(-10deg);pointer-events:none}
+.al-badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:24px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.8);margin-bottom:24px;display:inline-block}
+.al-logo{font-size:56px;margin-bottom:10px;animation:sway 4s ease-in-out infinite alternate;display:block;text-align:center}
+@keyframes sway{0%{transform:rotate(-4deg)}100%{transform:rotate(4deg)}}
+.al-title{font-family:'Lora',serif;font-size:38px;font-weight:700;text-align:center;margin-bottom:10px;line-height:1.15;letter-spacing:-0.5px}
+.al-title em{font-style:italic;color:var(--leaf4)}
+.al-sub{font-size:13px;opacity:0.75;text-align:center;max-width:320px;line-height:1.7;margin-bottom:36px}
+.al-feats{display:flex;flex-direction:column;gap:9px;width:100%;max-width:310px}
+.al-feat{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:11px;padding:10px 15px;font-size:12.5px;backdrop-filter:blur(4px)}
+.af-ico{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.auth-right{width:500px;background:var(--white);display:flex;align-items:center;justify-content:center;padding:56px 48px;overflow-y:auto}
+.auth-card{width:100%;max-width:390px}
+.auth-logo-sm{font-size:32px;margin-bottom:14px;display:block}
+.auth-heading{font-family:'Lora',serif;font-size:30px;font-weight:700;color:var(--dark);margin-bottom:3px;letter-spacing:-0.5px}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.tab-row{display:flex;background:var(--parchment);border-radius:11px;padding:4px;margin-bottom:24px;border:1px solid var(--border)}
+.tab-btn{flex:1;padding:9px;border:none;border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.22s;color:var(--muted)}
+.tab-btn.active{background:var(--white);color:var(--leaf);box-shadow:var(--sh1)}
+.role-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.role-card{border:2px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all 0.22s;background:var(--parchment)}
+.role-card.selected{border-color:var(--leaf);background:rgba(42,92,42,0.05)}
+.rc-ico{font-size:28px;margin-bottom:6px}
+.rc-name{font-size:13px;font-weight:700}
+.rc-desc{font-size:10.5px;color:var(--muted);margin-top:2px}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid);margin-bottom:5px}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--parchment);border:1.5px solid var(--border);border-radius:10px;color:var(--dark);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;transition:all 0.22s;-webkit-appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--leaf);box-shadow:0 0 0 3px rgba(42,92,42,0.07);background:var(--white)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--faint)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.auth-submit{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--leaf),var(--leaf2));border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;transition:all 0.22s}
+.auth-submit:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(42,92,42,0.28)}
+.auth-err{font-size:12px;color:var(--berry);margin-top:8px;font-weight:600;min-height:16px}
+.demo-row{display:flex;gap:7px;margin-top:14px}
+.demo-btn{flex:1;padding:9px;border-radius:9px;border:1.5px solid var(--border);background:var(--parchment);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;transition:all 0.2s;color:var(--mid)}
+.demo-btn:hover{border-color:var(--leaf);color:var(--leaf)}
+.farmer-fields,.consumer-fields{display:none}
+.farmer-fields.show,.consumer-fields.show{display:block}
+
+/* ── OWNER CREDIT ── */
+.owner-credit{margin-top:auto;padding-top:28px;width:100%;max-width:310px;border-top:1px solid rgba(255,255,255,0.1)}
+.owner-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:10px;text-align:center}
+.owner-cards{display:flex;gap:8px}
+.owner-card{flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:10px 12px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(4px)}
+.owner-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1px solid rgba(255,255,255,0.2)}
+.owner-name{font-size:11.5px;font-weight:700;color:#fff;line-height:1.2}
+.owner-role{font-size:9px;color:rgba(255,255,255,0.5);font-weight:600;margin-top:2px}
+
+/* ── QUICK LOGIN CARDS ── */
+.quick-login-card{width:100%;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:13px;border:1.5px solid var(--border);background:var(--parchment);cursor:pointer;transition:all 0.22s;font-family:'DM Sans',sans-serif;text-align:left}
+.quick-login-card:hover{border-color:var(--leaf);background:rgba(42,92,42,0.04);transform:translateX(3px);box-shadow:var(--sh1)}
+.quick-login-card.admin-card:hover{border-color:var(--berry);background:rgba(192,57,43,0.03)}
+.qlc-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.farmer-av{background:linear-gradient(135deg,rgba(42,92,42,0.12),rgba(90,173,58,0.12));border:2px solid rgba(42,92,42,0.2)}
+.consumer-av{background:linear-gradient(135deg,rgba(59,130,196,0.12),rgba(96,165,250,0.12));border:2px solid rgba(59,130,196,0.2)}
+.admin-av{background:linear-gradient(135deg,rgba(192,57,43,0.1),rgba(248,113,113,0.1));border:2px solid rgba(192,57,43,0.2)}
+.qlc-info{flex:1}
+.qlc-name{font-size:13px;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.qlc-email{font-size:11px;color:var(--muted)}
+.qlc-badge{font-size:8.5px;padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:0.3px}
+.farmer-badge{background:rgba(42,92,42,0.1);color:var(--leaf)}
+.consumer-badge{background:rgba(59,130,196,0.1);color:var(--sky)}
+.admin-badge{background:rgba(192,57,43,0.1);color:var(--berry)}
+.qlc-arrow{font-size:16px;color:var(--faint);transition:all 0.2s;flex-shrink:0}
+.quick-login-card:hover .qlc-arrow{color:var(--leaf);transform:translateX(3px)}
+.quick-login-card.admin-card:hover .qlc-arrow{color:var(--berry)}
+.qlc-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--leaf);border-radius:50%;animation:spin 0.7s linear infinite}
+
+/* ── NAVBAR ── */
+.navbar{height:60px;background:rgba(250,246,239,0.95);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:100;box-shadow:0 1px 12px rgba(42,92,42,0.07)}
+.nb-brand{display:flex;align-items:center;gap:10px}
+.nb-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--leaf),var(--leaf3));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(42,92,42,0.25)}
+.nb-name{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--leaf);letter-spacing:-0.3px}
+.nb-plus{font-size:8.5px;background:linear-gradient(135deg,var(--pollen),#c97d00);color:#fff;padding:2px 6px;border-radius:5px;font-weight:700;letter-spacing:0.5px;font-family:'DM Sans',sans-serif;margin-left:2px;vertical-align:middle}
+.nb-right{display:flex;align-items:center;gap:10px}
+.nb-user{display:flex;align-items:center;gap:7px;background:rgba(42,92,42,0.06);border:1px solid var(--border);border-radius:22px;padding:5px 13px;font-size:12px;font-weight:600;color:var(--leaf)}
+.nb-badge{font-size:9px;padding:2px 7px;border-radius:5px;font-weight:700;letter-spacing:0.5px;color:#fff;font-family:'DM Sans',sans-serif}
+.nb-badge.farmer{background:var(--leaf)}
+.nb-badge.consumer{background:var(--sky)}
+.nb-badge.admin{background:var(--berry)}
+.nb-btn{padding:7px 15px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.2s}
+.nb-btn:hover{border-color:var(--leaf);color:var(--leaf)}
+.cart-btn{position:relative;cursor:pointer;font-size:20px;line-height:1;padding:4px;transition:transform 0.2s}
+.cart-btn:hover{transform:scale(1.12)}
+.cart-cnt{position:absolute;top:-5px;right:-5px;background:var(--berry);color:#fff;font-size:9px;font-weight:700;width:17px;height:17px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--leaf3);display:inline-block;margin-left:4px}
+.sync-dot.syncing{animation:blink 1s infinite}
+.sync-dot.offline{background:var(--pollen)}
+.sync-dot.error{background:var(--berry)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── APP TABS ── */
+.app-tabs{display:flex;gap:2px;padding:0 22px;border-bottom:1px solid var(--border);background:var(--white);overflow-x:auto;scrollbar-width:none}
+.app-tabs::-webkit-scrollbar{display:none}
+.app-tab{padding:13px 16px;border:none;border-bottom:2.5px solid transparent;background:transparent;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--faint);transition:all 0.2s;white-space:nowrap;margin-bottom:-1px}
+.app-tab:hover{color:var(--mid)}
+.app-tab.active{color:var(--leaf);border-bottom-color:var(--leaf)}
+.tab-new{font-size:7.5px;background:var(--pollen);color:#fff;padding:1px 4px;border-radius:4px;margin-left:4px;font-weight:700;vertical-align:middle}
+
+.main-content{max-width:1100px;margin:0 auto;padding:24px 22px}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:18px;box-shadow:var(--sh1)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-family:'Lora',serif;font-size:16px;font-weight:600;color:var(--dark);letter-spacing:-0.2px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:22px;border:none;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.22s}
+.btn-green{background:linear-gradient(135deg,var(--leaf),var(--leaf2));color:#fff}
+.btn-green:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(42,92,42,0.28)}
+.btn-outline{background:transparent;border:1.5px solid var(--leaf);color:var(--leaf)}
+.btn-outline:hover{background:rgba(42,92,42,0.05)}
+.btn-red{background:var(--berry);color:#fff}
+.btn-gold{background:linear-gradient(135deg,var(--pollen),#b87d00);color:#fff}
+.btn-purple{background:linear-gradient(135deg,var(--lavender),#5c3a9e);color:#fff}
+.btn-orange{background:linear-gradient(135deg,var(--orange),#c06010);color:#fff}
+.btn-sm{padding:6px 12px;font-size:11px}
+.btn-full{width:100%;justify-content:center;padding:12px;border-radius:12px;font-size:13.5px}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;box-shadow:var(--sh1);transition:transform 0.2s}
+.stat-box:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.stat-val{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--leaf)}
+.stat-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.stat-change{font-size:10px;font-weight:700;margin-top:3px}
+.stat-change.up{color:var(--leaf3)}.stat-change.down{color:var(--berry)}
+
+/* ── HERO ── */
+.hero{border-radius:16px;padding:24px 26px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero.green{background:linear-gradient(140deg,#1a3218,var(--leaf),#2a7a3a)}
+.hero.blue{background:linear-gradient(140deg,#1a3a5c,var(--sky),#1a6aad)}
+.hero.admin{background:linear-gradient(140deg,#3a1a1a,var(--berry),#7a1a2a)}
+.hero::after{position:absolute;right:12px;bottom:-24px;font-size:120px;opacity:0.08;transform:rotate(-8deg);pointer-events:none}
+.hero.green::after{content:'🌿'}
+.hero.blue::after{content:'🛒'}
+.hero.admin::after{content:'⚙️'}
+.hero-title{font-family:'Lora',serif;font-size:23px;font-weight:700;color:#fff;margin-bottom:5px;letter-spacing:-0.3px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,0.78)}
+
+/* ── WEATHER ── */
+.weather-card{background:linear-gradient(135deg,#1a4a7c,#1e6ab8,#2490d4);border-radius:var(--r);padding:20px;color:#fff;margin-bottom:18px;box-shadow:var(--sh2)}
+.wc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.wc-main{display:flex;align-items:center;gap:14px}
+.wc-ico{font-size:54px;line-height:1}
+.wc-temp{font-family:'Lora',serif;font-size:54px;font-weight:700;line-height:1}
+.wc-desc{font-size:13.5px;opacity:0.88;margin-top:3px;font-weight:500}
+.wc-loc{font-size:11px;opacity:0.65;margin-top:3px}
+.wc-details{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.wc-det{background:rgba(255,255,255,0.1);border-radius:10px;padding:9px;text-align:center}
+.wc-det-val{font-size:14px;font-weight:700}
+.wc-det-lbl{font-size:9px;opacity:0.72;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.wc-forecast{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.wc-forecast::-webkit-scrollbar{display:none}
+.wc-day{background:rgba(255,255,255,0.08);border-radius:10px;padding:9px 13px;text-align:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.1)}
+.wc-day-name{font-size:9.5px;opacity:0.7;font-weight:700;text-transform:uppercase;letter-spacing:0.8px}
+.wc-day-ico{font-size:20px;margin:5px 0}
+.wc-day-temp{font-size:11.5px;font-weight:700}
+.farm-advice{background:rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;font-size:12.5px;border:1px solid rgba(255,255,255,0.12);margin-top:11px;line-height:1.6}
+.farm-advice-title{font-weight:700;margin-bottom:4px;font-size:10px;opacity:0.75;text-transform:uppercase;letter-spacing:1.2px}
+
+/* ── PRODUCTS ── */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.prod-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all 0.25s;cursor:pointer}
+.prod-card:hover{transform:translateY(-4px);box-shadow:var(--sh2);border-color:rgba(42,92,42,0.2)}
+.prod-img{height:148px;display:flex;align-items:center;justify-content:center;font-size:58px;position:relative;overflow:hidden}
+.prod-img img{width:100%;height:100%;object-fit:cover}
+.prod-badge{position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:7px;font-size:9px;font-weight:700;color:#fff}
+.prod-badge.organic{background:var(--leaf)}
+.prod-badge.fresh{background:var(--leaf3)}
+.prod-badge.rec{background:var(--lavender)}
+.prod-body{padding:13px}
+.prod-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.prod-farmer{font-size:10.5px;color:var(--muted);margin-bottom:5px}
+.prod-rating{font-size:11px;color:var(--pollen);margin-bottom:7px}
+.prod-footer{display:flex;align-items:center;justify-content:space-between}
+.prod-price{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--leaf)}
+.prod-unit{font-size:10px;font-family:'DM Sans',sans-serif;color:var(--muted);font-weight:400}
+.prod-stock{font-size:10px;color:var(--muted);margin-top:5px}
+.add-btn{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--leaf),var(--leaf2));border:none;color:#fff;font-size:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.add-btn:hover{transform:scale(1.15)}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:var(--parchment);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mid);padding:10px 13px;text-align:left}
+td{padding:11px 13px;border-bottom:1px solid var(--border2);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(42,92,42,0.015)}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:10px;font-weight:700;text-transform:uppercase;font-family:'DM Sans',sans-serif}
+.bg-green{background:rgba(90,173,58,0.12);color:var(--leaf3)}
+.bg-gold{background:rgba(212,162,40,0.12);color:var(--pollen)}
+.bg-red{background:rgba(192,57,43,0.1);color:var(--berry)}
+.bg-blue{background:rgba(59,130,196,0.1);color:var(--sky)}
+.bg-purple{background:rgba(124,92,191,0.1);color:var(--lavender)}
+.bg-gray{background:rgba(0,0,0,0.05);color:var(--muted)}
+.bg-orange{background:rgba(224,120,32,0.1);color:var(--orange)}
+
+/* ── FILTERS ── */
+.filter-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.chip{padding:6px 13px;border-radius:18px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.chip:hover{border-color:var(--leaf);color:var(--leaf)}
+.chip.active{background:rgba(42,92,42,0.08);border-color:var(--leaf);color:var(--leaf)}
+.search-wrap{display:flex;align-items:center;gap:9px;background:var(--white);border:1.5px solid var(--border);border-radius:28px;padding:10px 18px;margin-bottom:14px;transition:border-color 0.2s}
+.search-wrap:focus-within{border-color:var(--leaf)}
+.search-wrap input{border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--dark);flex:1}
+.search-wrap input::placeholder{color:var(--faint)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(26,46,26,0.4);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.28s;backdrop-filter:blur(6px)}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:20px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;transform:scale(0.94) translateY(8px);transition:transform 0.28s;box-shadow:var(--sh3)}
+.modal-bg.open .modal{transform:scale(1) translateY(0)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--dark);letter-spacing:-0.2px}
+.modal-close{background:var(--parchment);border:1px solid var(--border);width:30px;height:30px;border-radius:50%;font-size:14px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.modal-close:hover{background:var(--sand);color:var(--dark)}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:220px}
+.chart-wrap.sm{height:160px}
+
+/* ── AI DISEASE ── */
+.disease-upload{border:2px dashed var(--border);border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;transition:all 0.28s;background:var(--parchment);margin-bottom:14px;position:relative;overflow:hidden}
+.disease-upload:hover{border-color:var(--leaf);background:rgba(42,92,42,0.03)}
+.disease-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.disease-result{display:none;animation:slideUp 0.4s ease both}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.disease-header{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+.disease-img-box{width:80px;height:80px;border-radius:14px;background:var(--parchment);display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;overflow:hidden;border:1px solid var(--border)}
+.disease-img-box img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+.disease-name{font-family:'Lora',serif;font-size:18px;font-weight:700;margin-bottom:3px}
+.conf-bar{height:5px;border-radius:99px;background:var(--sand);overflow:hidden;margin-top:7px}
+.conf-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pollen),var(--berry));transition:width 1.2s cubic-bezier(0.16,1,0.3,1)}
+.disease-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.disease-info{background:var(--parchment);border-radius:11px;padding:12px;border:1px solid var(--border2)}
+.di-lbl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.di-val{font-size:12.5px;font-weight:600;line-height:1.4}
+.treatment-list{display:flex;flex-direction:column;gap:8px}
+.treatment-item{display:flex;gap:10px;align-items:flex-start;background:var(--parchment);border-radius:10px;padding:11px 13px;font-size:12.5px;border:1px solid var(--border2);line-height:1.5}
+.t-num{width:22px;height:22px;border-radius:50%;background:var(--leaf);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.crop-opts{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.crop-opts::-webkit-scrollbar{display:none}
+.crop-opt{padding:8px 15px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0}
+.crop-opt.active{background:rgba(42,92,42,0.08);border-color:var(--leaf);color:var(--leaf)}
+.symptom-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.symptom-pill{padding:6px 13px;border-radius:16px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.symptom-pill.active{background:rgba(42,92,42,0.08);border-color:var(--leaf);color:var(--leaf)}
+.ai-spinner-wrap{text-align:center;padding:30px;display:none}
+.ai-spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--leaf);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── DELIVERY TRACKING ── */
+.track-timeline{display:flex;flex-direction:column}
+.track-step{display:flex;gap:14px;padding-bottom:18px}
+.track-step:last-child{padding-bottom:0}
+.ts-col{display:flex;flex-direction:column;align-items:center}
+.ts-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);background:var(--white);flex-shrink:0;transition:all 0.3s;display:flex;align-items:center;justify-content:center;font-size:10px}
+.ts-dot.done{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.ts-dot.active{background:var(--leaf3);border-color:var(--leaf3);color:#fff;animation:glowPulse 1.5s infinite}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(90,173,58,0.4)}50%{box-shadow:0 0 0 6px rgba(90,173,58,0)}}
+.ts-line{width:2px;flex:1;background:var(--border);margin:2px 0;min-height:20px;transition:background 0.5s}
+.ts-line.done{background:var(--leaf3)}
+.ts-info{flex:1;padding-top:1px}
+.ts-name{font-size:13px;font-weight:700}
+.ts-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.ts-time{font-size:10px;color:var(--leaf3);font-weight:700;margin-top:2px}
+.delivery-map{background:rgba(42,92,42,0.04);border:1px solid var(--border);border-radius:11px;padding:12px;margin-top:9px;display:flex;align-items:center;gap:12px}
+.delivery-rider{font-size:30px}
+.delivery-eta{font-size:13.5px;font-weight:700;color:var(--leaf)}
+.delivery-detail{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* ── RECOMMENDATIONS ── */
+.rec-section{margin-bottom:20px}
+.rec-tag{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--lavender);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rec-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.rec-scroll::-webkit-scrollbar{display:none}
+.rec-card{background:var(--white);border:1px solid var(--border);border-radius:13px;overflow:hidden;flex-shrink:0;width:178px;cursor:pointer;transition:all 0.22s}
+.rec-card:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
+.rec-img{height:110px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;overflow:hidden}
+.rec-img img{width:100%;height:100%;object-fit:cover}
+.rec-body{padding:10px}
+.rec-name{font-size:12px;font-weight:700;margin-bottom:2px}
+.rec-reason{font-size:10px;color:var(--lavender);font-weight:600;margin-bottom:5px}
+.rec-price{font-family:'Lora',serif;font-size:15px;font-weight:700;color:var(--leaf)}
+
+/* ── TOAST ── */
+.toast-area{position:fixed;top:74px;right:18px;z-index:999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--white);border:1px solid var(--border);border-radius:11px;padding:10px 16px;font-size:12px;font-weight:600;box-shadow:var(--sh2);display:flex;align-items:center;gap:7px;animation:toastIn 0.3s ease,toastOut 0.3s ease 2.7s forwards;max-width:300px}
+.toast.success{border-left:3px solid var(--leaf3)}
+.toast.error{border-left:3px solid var(--berry)}
+.toast.info{border-left:3px solid var(--sky)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+/* ── EMPTY & LOADING ── */
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty-ico{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:5px;font-family:'Lora',serif}
+.empty-sub{font-size:12px;line-height:1.6}
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:36px;color:var(--muted);font-size:13px}
+.spinner{width:26px;height:26px;border:2.5px solid var(--border);border-top-color:var(--leaf);border-radius:50%;animation:spin 0.8s linear infinite}
+
+/* ── CART ── */
+.cart-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border2)}
+.ci-img{width:42px;height:42px;border-radius:9px;background:var(--parchment);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;border:1px solid var(--border2)}
+.ci-img img{width:100%;height:100%;object-fit:cover}
+.ci-info{flex:1}
+.ci-name{font-size:12px;font-weight:700}
+.ci-price{font-size:11px;color:var(--leaf);font-weight:700;margin-top:1px}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
+.qty-btn{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);background:var(--parchment);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.qty-btn:hover{border-color:var(--leaf)}
+.qty-num{font-size:12px;font-weight:700;min-width:16px;text-align:center}
+.steps{display:flex;align-items:center;margin-bottom:20px}
+.step-item{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.step-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);transition:all 0.3s}
+.step-circle.done{border-color:var(--leaf3);background:var(--leaf3);color:#fff}
+.step-circle.active{border-color:var(--leaf);background:var(--leaf);color:#fff}
+.step-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.step-line{flex:1;height:2px;background:var(--border);margin-top:-15px;margin-bottom:14px}
+.step-line.done{background:var(--leaf3)}
+.pay-opt{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1.5px solid var(--border);border-radius:11px;cursor:pointer;transition:all 0.22s;margin-bottom:8px}
+.pay-opt.selected{border-color:var(--leaf);background:rgba(42,92,42,0.03)}
+.pay-ico{font-size:18px}
+.pay-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.pay-radio.on{border-color:var(--leaf);background:var(--leaf)}
+.pay-radio.on::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+.success-screen{text-align:center;padding:24px 0}
+.success-ico{font-size:64px;margin-bottom:12px;animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1)}
+@keyframes popIn{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.success-title{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--leaf);margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px}
+.order-id-box{background:rgba(42,92,42,0.06);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:700;color:var(--leaf);margin-bottom:16px}
+
+/* ── ADMIN ── */
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+.admin-stat{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--sh1);text-align:center;position:relative;overflow:hidden}
+.admin-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.admin-stat.green::before{background:linear-gradient(90deg,var(--leaf),var(--leaf3))}
+.admin-stat.blue::before{background:linear-gradient(90deg,var(--sky),#60a5fa)}
+.admin-stat.red::before{background:linear-gradient(90deg,var(--berry),#f87171)}
+.admin-stat.gold::before{background:linear-gradient(90deg,var(--pollen),#fbbf24)}
+.admin-stat-val{font-family:'Lora',serif;font-size:28px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.admin-stat-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.admin-section{margin-bottom:20px}
+.admin-section-title{font-family:'Lora',serif;font-size:15px;font-weight:600;color:var(--dark);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2)}
+.user-row:last-child{border-bottom:none}
+.user-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--leaf),var(--leaf3));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.user-av.consumer{background:linear-gradient(135deg,var(--sky),#60a5fa)}
+.user-info{flex:1}
+.user-name{font-size:13px;font-weight:700}
+.user-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.action-log{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.log-item{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--parchment);border-radius:9px;border:1px solid var(--border2)}
+.log-ico{font-size:16px;flex-shrink:0;margin-top:2px}
+.log-text{font-size:12px;flex:1;line-height:1.5}
+.log-time{font-size:10px;color:var(--faint);white-space:nowrap;margin-top:2px}
+.admin-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.admin-tab{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.admin-tab.active{background:var(--berry);border-color:var(--berry);color:#fff}
+.moderation-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--parchment);border-radius:11px;margin-bottom:8px;border:1px solid var(--border2)}
+.mod-ico{font-size:28px;flex-shrink:0}
+.mod-info{flex:1}
+.mod-name{font-size:13px;font-weight:700}
+.mod-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.mod-actions{display:flex;gap:6px}
+
+/* ── PWA INSTALL BANNER ── */
+.pwa-banner{display:none;background:linear-gradient(135deg,var(--leaf),var(--leaf2));color:#fff;padding:12px 20px;align-items:center;gap:12px;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);border-radius:14px;z-index:500;box-shadow:var(--sh3);max-width:420px;width:calc(100% - 32px)}
+.pwa-banner.show{display:flex}
+.pwa-banner-text{flex:1;font-size:13px;line-height:1.4}
+.pwa-banner-title{font-weight:700;margin-bottom:2px}
+.pwa-banner-sub{font-size:11px;opacity:0.85}
+
+/* ── FIREBASE CONFIG SETUP ── */
+.fb-setup{background:var(--parchment);border:2px dashed var(--border);border-radius:14px;padding:20px;margin-bottom:18px}
+.fb-setup-title{font-family:'Lora',serif;font-size:15px;font-weight:600;color:var(--dark);margin-bottom:8px}
+.fb-setup-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.fb-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+
+/* ── APP FOOTER ── */
+.app-footer{text-align:center;padding:28px 20px 32px;border-top:1px solid var(--border);margin-top:24px;color:var(--faint)}
+.app-footer-logo{font-size:22px;margin-bottom:6px}
+.app-footer-name{font-family:'Lora',serif;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
+.app-footer-owners{display:inline-flex;align-items:center;gap:6px;background:var(--parchment);border:1px solid var(--border);border-radius:22px;padding:6px 14px;font-size:11.5px;font-weight:600;color:var(--mid)}
+.app-footer-owners span{color:var(--leaf);font-weight:700}
+.app-footer-copy{font-size:10px;color:var(--faint);margin-top:8px}
+
+@media(max-width:768px){
+  #authScreen{flex-direction:column}
+  .auth-left{padding:30px 22px;min-height:auto}
+  .auth-right{width:100%;padding:30px 22px}
+  .al-feats{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .prod-grid{grid-template-columns:1fr 1fr}
+  .admin-grid{grid-template-columns:1fr 1fr}
+  .fb-fields{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LANGUAGE SWITCHER (global, always visible) ── -->
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+  <button class="lang-btn" onclick="setLang('hi',this)">हि</button>
+  <button class="lang-btn" onclick="setLang('ta',this)">த</button>
+  <button class="lang-btn" onclick="setLang('te',this)">తె</button>
+</div>
+
+<!-- ── FIREBASE STATUS BANNER ── -->
+<div class="fb-banner" id="fbBanner">
+  <span id="fbBannerIco">🔄</span>
+  <span id="fbBannerMsg">Connecting to Firebase...</span>
+</div>
+
+<!-- ── PWA INSTALL BANNER ── -->
+<div class="pwa-banner" id="pwaBanner">
+  <span style="font-size:28px">📲</span>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title" data-i18n="pwa_title">Install AgriSmart App</div>
+    <div class="pwa-banner-sub" data-i18n="pwa_sub">Add to home screen for offline access</div>
+  </div>
+  <button class="btn btn-gold btn-sm" id="pwaInstallBtn" data-i18n="pwa_install">Install</button>
+  <button onclick="document.getElementById('pwaBanner').classList.remove('show')" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:18px;padding:2px">×</button>
+</div>
+
+<div class="toast-area" id="toastArea"></div>
+
+<!-- ══════════════════════════════════════
+     AUTH SCREEN
+══════════════════════════════════════ -->
+<div id="authScreen" class="active">
+  <div class="auth-left">
+    <div class="al-badge" data-i18n="al_badge">Farm-to-Table Platform</div>
+    <span class="al-logo">🌱</span>
+    <div class="al-title">AgriSmart<br><em>Connect PLUS</em></div>
+    <div class="al-sub" data-i18n="al_sub">Smart farming with AI disease detection, live weather insights, sales analytics and personalised recommendations.</div>
+    <div class="al-feats">
+      <div class="al-feat"><div class="af-ico">🤖</div><span data-i18n="feat1">AI Crop Disease Detection</span></div>
+      <div class="al-feat"><div class="af-ico">🌦️</div><span data-i18n="feat2">Live Weather for Farmers</span></div>
+      <div class="al-feat"><div class="af-ico">📊</div><span data-i18n="feat3">Sales Analytics & Charts</span></div>
+      <div class="al-feat"><div class="af-ico">🎯</div><span data-i18n="feat4">Personalised Recommendations</span></div>
+      <div class="al-feat"><div class="af-ico">☁️</div><span data-i18n="feat5">Firebase Cloud Sync</span></div>
+      <div class="owner-credit">
+        <div class="owner-label">App Created By</div>
+        <div class="owner-cards">
+          <div class="owner-card">
+            <div class="owner-av">👨‍💻</div>
+            <div><div class="owner-name">Kaushic MK</div><div class="owner-role">Co-Founder</div></div>
+          </div>
+          <div class="owner-card">
+            <div class="owner-av">👨‍💼</div>
+            <div><div class="owner-name">Kaushal MK</div><div class="owner-role">Co-Founder</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-card">
+      <!-- Firebase Setup (shown only if not configured) -->
+      <div class="fb-setup" id="fbSetup" style="display:none">
+        <div class="fb-setup-title">⚙️ Firebase Configuration</div>
+        <div class="fb-setup-sub">Paste your Firebase project config to enable cloud sync across devices. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--leaf)">Get config →</a></div>
+        <div class="fb-fields">
+          <div class="fg"><label>API Key</label><input type="text" id="fb_apiKey" placeholder="AIza..."></div>
+          <div class="fg"><label>Auth Domain</label><input type="text" id="fb_authDomain" placeholder="project.firebaseapp.com"></div>
+          <div class="fg"><label>Project ID</label><input type="text" id="fb_projectId" placeholder="my-project"></div>
+          <div class="fg"><label>Storage Bucket</label><input type="text" id="fb_storageBucket" placeholder="project.appspot.com"></div>
+          <div class="fg"><label>Messaging Sender ID</label><input type="text" id="fb_messagingSenderId" placeholder="123456789"></div>
+          <div class="fg"><label>App ID</label><input type="text" id="fb_appId" placeholder="1:123:web:abc"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-green btn-sm" onclick="initFirebaseFromForm()">🔥 Connect Firebase</button>
+          <button class="btn btn-outline btn-sm" onclick="useDemoMode()">💾 Use Local Storage</button>
+        </div>
+        <div id="fb_err" style="margin-top:8px;font-size:12px;color:var(--berry);font-weight:600"></div>
+      </div>
+
+      <span class="auth-logo-sm">🌾</span>
+      <div class="auth-heading" data-i18n="auth_welcome">Welcome back 👋</div>
+      <div class="auth-sub" data-i18n="auth_sub">Sign in or create your account to continue</div>
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchAuthTab('login',this)" data-i18n="login">Login</button>
+        <button class="tab-btn" onclick="switchAuthTab('register',this)" data-i18n="register">Register</button>
+      </div>
+      <div id="loginForm">
+        <div class="fg"><label data-i18n="email">Email</label><input type="email" id="li_email" placeholder="your@email.com"></div>
+        <div class="fg"><label data-i18n="password">Password</label><input type="password" id="li_pass" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="auth-submit" onclick="doLogin()" data-i18n="signin">🌱 Sign In</button>
+        <div class="auth-err" id="loginErr"></div>
+        <div style="text-align:center;font-size:11px;color:var(--faint);margin:14px 0;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:var(--border)"></div><span>or try a demo account</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="quick-login-card" onclick="quickLoginByEmail('kaushic@agrismart.com','kaushic123')">
+            <div class="qlc-avatar farmer-av">👨‍🌾</div>
+            <div class="qlc-info">
+              <div class="qlc-name">Kaushic MK <span class="qlc-badge farmer-badge">Owner · Farmer</span></div>
+              <div class="qlc-email">kaushic@agrismart.com</div>
+            </div>
+            <div class="qlc-arrow">→</div>
+          </button>
+          <button class="quick-login-card" onclick="quickLoginByEmail('kaushal@agrismart.com','kaushal123')">
+            <div class="qlc-avatar consumer-av">🛒</div>
+            <div class="qlc-info">
+              <div class="qlc-name">Kaushal MK <span class="qlc-badge consumer-badge">Owner · Consumer</span></div>
+              <div class="qlc-email">kaushal@agrismart.com</div>
+            </div>
+            <div class="qlc-arrow">→</div>
+          </button>
+          <div style="height:1px;background:var(--border);margin:2px 0"></div>
+          <button class="quick-login-card" onclick="quickLogin('farmer')">
+            <div class="qlc-avatar farmer-av">👨‍🌾</div>
+            <div class="qlc-info">
+              <div class="qlc-name">Ramesh Kumar <span class="qlc-badge farmer-badge">Farmer</span></div>
+              <div class="qlc-email">farmer@demo.com</div>
+            </div>
+            <div class="qlc-arrow">→</div>
+          </button>
+          <button class="quick-login-card" onclick="quickLogin('consumer')">
+            <div class="qlc-avatar consumer-av">🛒</div>
+            <div class="qlc-info">
+              <div class="qlc-name">Amit Sharma <span class="qlc-badge consumer-badge">Consumer</span></div>
+              <div class="qlc-email">consumer@demo.com</div>
+            </div>
+            <div class="qlc-arrow">→</div>
+          </button>
+          <button class="quick-login-card admin-card" onclick="quickLogin('admin')">
+            <div class="qlc-avatar admin-av">⚙️</div>
+            <div class="qlc-info">
+              <div class="qlc-name">Admin <span class="qlc-badge admin-badge">Admin</span></div>
+              <div class="qlc-email">admin@demo.com</div>
+            </div>
+            <div class="qlc-arrow">→</div>
+          </button>
+        </div>
+      </div>
+      <div id="registerForm" style="display:none">
+        <div style="margin-bottom:12px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid)" data-i18n="i_am">I am a...</div>
+        <div class="role-pick">
+          <div class="role-card selected" id="roleCardFarmer" onclick="selectRole('farmer')"><div class="rc-ico">👨‍🌾</div><div class="rc-name" data-i18n="farmer">Farmer</div><div class="rc-desc" data-i18n="farmer_desc">List & sell produce</div></div>
+          <div class="role-card" id="roleCardConsumer" onclick="selectRole('consumer')"><div class="rc-ico">🛒</div><div class="rc-name" data-i18n="consumer">Consumer</div><div class="rc-desc" data-i18n="consumer_desc">Buy fresh food</div></div>
+        </div>
+        <div class="fg2">
+          <div class="fg"><label data-i18n="full_name">Full Name *</label><input type="text" id="re_name" placeholder="Your name"></div>
+          <div class="fg"><label data-i18n="phone">Phone</label><input type="tel" id="re_phone" placeholder="+91 XXXXX"></div>
+        </div>
+        <div class="fg"><label data-i18n="email">Email *</label><input type="email" id="re_email" placeholder="your@email.com"></div>
+        <div class="fg"><label data-i18n="password">Password *</label><input type="password" id="re_pass" placeholder="Min 6 characters"></div>
+        <div class="farmer-fields show" id="farmerFields">
+          <div class="fg2">
+            <div class="fg"><label data-i18n="farm_name">Farm Name</label><input type="text" id="re_farm" placeholder="My Green Farm"></div>
+            <div class="fg"><label data-i18n="location">Location</label><input type="text" id="re_loc" placeholder="Karnal, HR"></div>
+          </div>
+          <div class="fg"><label>UPI ID</label><input type="text" id="re_upi" placeholder="name@upi"></div>
+        </div>
+        <div class="consumer-fields" id="consumerFields">
+          <div class="fg"><label data-i18n="delivery_address">Delivery Address</label><input type="text" id="re_addr" placeholder="House, Street, City"></div>
+        </div>
+        <button class="auth-submit" onclick="doRegister()" data-i18n="create_account">🚀 Create Account</button>
+        <div class="auth-err" id="registerErr"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FARMER APP
+══════════════════════════════════════ -->
+<div id="farmerApp" class="screen">
+  <nav class="navbar">
+    <div class="nb-brand"><div class="nb-logo">🌱</div><div class="nb-name">AgriSmart<span class="nb-plus">PLUS</span></div></div>
+    <div class="nb-right">
+      <div class="nb-user"><span>👨‍🌾</span><span id="f_navName">Farmer</span><span class="nb-badge farmer" data-i18n="farmer">Farmer</span><span class="sync-dot" id="f_syncDot" title="Sync status"></span></div>
+      <button class="nb-btn" onclick="doLogout()" data-i18n="logout">Logout</button>
+    </div>
+  </nav>
+  <div class="app-tabs">
+    <button class="app-tab active" onclick="fShowTab('overview',this)">📊 <span data-i18n="overview">Overview</span></button>
+    <button class="app-tab" onclick="fShowTab('products',this)">🌾 <span data-i18n="products">Products</span></button>
+    <button class="app-tab" onclick="fShowTab('addproduct',this)">➕ <span data-i18n="add_product">Add Product</span></button>
+    <button class="app-tab" onclick="fShowTab('orders',this)">📦 <span data-i18n="orders">Orders</span></button>
+    <button class="app-tab" onclick="fShowTab('analytics',this)">📈 <span data-i18n="analytics">Analytics</span> <span class="tab-new">NEW</span></button>
+    <button class="app-tab" onclick="fShowTab('ai',this)">🤖 <span data-i18n="ai_disease">AI Disease</span> <span class="tab-new">NEW</span></button>
+  </div>
+  <div class="main-content">
+    <div id="f_overview">
+      <div class="hero green"><div class="hero-title" id="f_heroTitle">Good Morning! 🌾</div><div class="hero-sub" data-i18n="farm_summary">Here's your farm summary for today.</div></div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" id="f_s1">0</div><div class="stat-lbl" data-i18n="products">Products</div></div>
+        <div class="stat-box"><div class="stat-val" id="f_s2">0</div><div class="stat-lbl" data-i18n="orders">Orders</div></div>
+        <div class="stat-box"><div class="stat-val" id="f_s3">₹0</div><div class="stat-lbl" data-i18n="revenue">Revenue</div></div>
+        <div class="stat-box"><div class="stat-val" id="f_s4">0</div><div class="stat-lbl" data-i18n="pending">Pending</div></div>
+      </div>
+      <div class="weather-card">
+        <div class="wc-top">
+          <div class="wc-main"><div class="wc-ico" id="wc_ico">⛅</div><div><div class="wc-temp" id="wc_temp">32°</div><div class="wc-desc" id="wc_desc">Partly Cloudy</div><div class="wc-loc" id="wc_loc">📍 Karnal</div></div></div>
+          <div style="text-align:right;font-size:12px;opacity:0.85">
+            <div>💧 <span id="wc_humid">65%</span></div><div>💨 <span id="wc_wind">14 km/h</span></div>
+            <div style="font-size:10px;opacity:0.6;margin-top:4px" id="wc_updated"></div>
+          </div>
+        </div>
+        <div class="wc-details">
+          <div class="wc-det"><div class="wc-det-val" id="wc_rain">🌧️ 15%</div><div class="wc-det-lbl" data-i18n="rain">Rain</div></div>
+          <div class="wc-det"><div class="wc-det-val" id="wc_uv">UV 7</div><div class="wc-det-lbl">UV Index</div></div>
+          <div class="wc-det"><div class="wc-det-val" id="wc_vis">8 km</div><div class="wc-det-lbl" data-i18n="visibility">Visibility</div></div>
+          <div class="wc-det"><div class="wc-det-val" id="wc_feels">30°</div><div class="wc-det-lbl" data-i18n="feels_like">Feels Like</div></div>
+        </div>
+        <div class="wc-forecast" id="wc_forecast"></div>
+        <div class="farm-advice"><div class="farm-advice-title" data-i18n="farm_advisory">🌾 Farm Advisory</div><div id="wc_advice"></div></div>
+      </div>
+      <div class="card"><div class="card-hdr"><div class="card-title">📦 <span data-i18n="recent_orders">Recent Orders</span></div></div><div id="f_recentOrders"><div class="loading"><div class="spinner"></div></div></div></div>
+    </div>
+    <div id="f_products" style="display:none">
+      <div class="card"><div class="card-hdr"><div class="card-title">🌾 <span data-i18n="my_products">My Listed Products</span></div><button class="btn btn-green btn-sm" onclick="fShowTab('addproduct',null)">+ <span data-i18n="add">Add</span></button></div><div id="f_myProducts"><div class="loading"><div class="spinner"></div></div></div></div>
+    </div>
+    <div id="f_addproduct" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">➕ <span data-i18n="list_product">List New Product</span></div></div>
+        <div class="fg2">
+          <div class="fg"><label data-i18n="product_name">Product Name *</label><input type="text" id="ap_name" placeholder="e.g. Fresh Tomatoes"></div>
+          <div class="fg"><label data-i18n="category">Category *</label><select id="ap_cat"><option value="vegetables">🥬 Vegetables</option><option value="fruits">🍎 Fruits</option><option value="grains">🌾 Grains</option><option value="dairy">🥛 Dairy</option><option value="spices">🌶️ Spices</option><option value="other">🌱 Other</option></select></div>
+        </div>
+        <div class="fg"><label data-i18n="description">Description</label><textarea id="ap_desc" rows="2" placeholder="Quality, freshness, farming method..."></textarea></div>
+        <div class="fg2">
+          <div class="fg"><label data-i18n="price">Price (₹) *</label><input type="number" id="ap_price" placeholder="28" min="0"></div>
+          <div class="fg"><label data-i18n="unit">Unit *</label><select id="ap_unit"><option value="kg">per kg</option><option value="gram">per gram</option><option value="litre">per litre</option><option value="piece">per piece</option><option value="dozen">per dozen</option><option value="quintal">per quintal</option></select></div>
+        </div>
+        <div class="fg2">
+          <div class="fg"><label data-i18n="quantity">Quantity *</label><input type="number" id="ap_qty" placeholder="100" min="0"></div>
+          <div class="fg"><label data-i18n="location">Location</label><input type="text" id="ap_loc" placeholder="City, State"></div>
+        </div>
+        <div class="fg"><label data-i18n="product_image">Product Image</label><input type="file" accept="image/*" id="ap_img" onchange="previewImg(this)" style="padding:8px"><div id="ap_preview" style="margin-top:8px;display:none"><img id="ap_previewImg" style="width:100px;height:80px;object-fit:cover;border-radius:9px;border:1px solid var(--border)"></div></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px"><input type="checkbox" id="ap_organic" style="width:15px;height:15px;accent-color:var(--leaf)"><label for="ap_organic" style="font-size:13px;font-weight:600;cursor:pointer" data-i18n="organic_label">🌿 Organic product</label></div>
+        <button class="btn btn-green btn-full" onclick="addProduct()" data-i18n="list_product_btn">🌱 List Product</button>
+        <div id="ap_msg" style="margin-top:8px;font-size:12px;font-weight:600;min-height:16px"></div>
+      </div>
+    </div>
+    <div id="f_orders" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">📦 <span data-i18n="all_orders">All Orders</span></div></div>
+        <div class="filter-row">
+          <span style="font-size:11px;font-weight:700;color:var(--muted)" data-i18n="filter">Filter:</span>
+          <div class="chip active" onclick="fFilterOrders('all',this)" data-i18n="all">All</div>
+          <div class="chip" onclick="fFilterOrders('placed',this)">🆕 <span data-i18n="new_orders">New</span></div>
+          <div class="chip" onclick="fFilterOrders('confirmed',this)">✅ <span data-i18n="confirmed">Confirmed</span></div>
+          <div class="chip" onclick="fFilterOrders('dispatched',this)">🚚 <span data-i18n="dispatched">Dispatched</span></div>
+          <div class="chip" onclick="fFilterOrders('delivered',this)">📬 <span data-i18n="delivered">Delivered</span></div>
+        </div>
+        <div class="tbl-wrap" id="f_ordersTable"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+    <div id="f_analytics" style="display:none">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" id="fa_rev">₹0</div><div class="stat-lbl" data-i18n="total_revenue">Total Revenue</div><div class="stat-change up" id="fa_rev_change"></div></div>
+        <div class="stat-box"><div class="stat-val" id="fa_orders">0</div><div class="stat-lbl" data-i18n="total_orders">Total Orders</div><div class="stat-change up" id="fa_orders_change"></div></div>
+        <div class="stat-box"><div class="stat-val" id="fa_avg">₹0</div><div class="stat-lbl" data-i18n="avg_order">Avg Order Value</div></div>
+        <div class="stat-box"><div class="stat-val" id="fa_top">--</div><div class="stat-lbl" data-i18n="top_product">Top Product</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:3fr 2fr;gap:18px;margin-bottom:18px">
+        <div class="card"><div class="card-hdr"><div class="card-title">💰 <span data-i18n="revenue_trend">Revenue Trend</span></div><div style="display:flex;gap:5px"><div class="chip active" onclick="switchAnalyticsView('revenue',this)" data-i18n="revenue">Revenue</div><div class="chip" onclick="switchAnalyticsView('orders',this)" data-i18n="orders">Orders</div></div></div><div class="chart-wrap"><canvas id="revenueChart"></canvas></div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">🌾 <span data-i18n="category_sales">Category Sales</span></div></div><div class="chart-wrap"><canvas id="categoryChart"></canvas></div></div>
+      </div>
+      <div class="card"><div class="card-hdr"><div class="card-title">📦 <span data-i18n="product_performance">Product Performance</span></div></div><div class="tbl-wrap" id="f_productPerf"><div class="loading"><div class="spinner"></div></div></div></div>
+    </div>
+    <div id="f_ai" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">🤖 <span data-i18n="ai_title">AI Crop Disease Detector</span></div><span class="badge bg-purple">AI Powered</span></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.65" data-i18n="ai_desc">Select your crop type and observed symptoms — AI will identify the disease and provide a complete treatment plan.</p>
+        <div style="margin-bottom:12px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid)" data-i18n="select_crop">Select Crop</div>
+        <div class="crop-opts" id="cropOpts">
+          <div class="crop-opt active" data-crop="wheat" onclick="selectCrop(this)">🌾 Wheat</div>
+          <div class="crop-opt" data-crop="rice" onclick="selectCrop(this)">🌾 Rice</div>
+          <div class="crop-opt" data-crop="tomato" onclick="selectCrop(this)">🍅 Tomato</div>
+          <div class="crop-opt" data-crop="potato" onclick="selectCrop(this)">🥔 Potato</div>
+          <div class="crop-opt" data-crop="cotton" onclick="selectCrop(this)">🌿 Cotton</div>
+          <div class="crop-opt" data-crop="maize" onclick="selectCrop(this)">🌽 Maize</div>
+        </div>
+        <div style="margin-bottom:10px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid)" data-i18n="select_symptoms">Select Symptoms</div>
+        <div class="symptom-pills" id="symptomPills"></div>
+        <div class="disease-upload" id="aiUploadBtn" onclick="runDiseaseDetect()">
+          <input type="file" accept="image/*" id="ai_img" onchange="handleAIImage(event)" onclick="event.stopPropagation()">
+          <div style="font-size:44px;margin-bottom:10px">🔍</div>
+          <div style="font-size:14px;font-weight:600;color:var(--mid);margin-bottom:4px" data-i18n="ai_tap">Tap to Analyse Disease</div>
+          <div style="font-size:11.5px;color:var(--faint)" data-i18n="ai_hint">Upload crop photo OR select symptoms above</div>
+        </div>
+        <div class="ai-spinner-wrap" id="aiSpinner"><div class="ai-spinner"></div><div style="font-size:14px;color:var(--muted);font-weight:600" data-i18n="ai_analysing">🤖 Analysing crop symptoms...</div></div>
+        <div class="disease-result" id="diseaseResult">
+          <div class="disease-header">
+            <div class="disease-img-box" id="dr_imgBox">🌾</div>
+            <div style="flex:1">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px" data-i18n="detected_disease">Detected Disease</div>
+              <div class="disease-name" id="dr_name">--</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px"><span data-i18n="confidence">Confidence:</span> <strong id="dr_conf">--</strong></div>
+              <div class="conf-bar"><div class="conf-fill" id="dr_confFill" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="disease-grid">
+            <div class="disease-info"><div class="di-lbl" data-i18n="severity">Severity</div><div class="di-val" id="dr_sev">--</div></div>
+            <div class="disease-info"><div class="di-lbl" data-i18n="spread_risk">Spread Risk</div><div class="di-val" id="dr_spread">--</div></div>
+            <div class="disease-info"><div class="di-lbl" data-i18n="cause">Cause</div><div class="di-val" id="dr_cause">--</div></div>
+            <div class="disease-info"><div class="di-lbl" data-i18n="affected_part">Affected Part</div><div class="di-val" id="dr_part">--</div></div>
+          </div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid);margin-bottom:10px" data-i18n="treatment_plan">💊 Treatment Plan</div>
+          <div class="treatment-list" id="dr_treatments"></div>
+          <button class="btn btn-outline btn-full" style="margin-top:14px" onclick="resetAI()" data-i18n="detect_another">🔄 Detect Another Disease</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CONSUMER APP
+══════════════════════════════════════ -->
+<div id="consumerApp" class="screen">
+  <nav class="navbar">
+    <div class="nb-brand"><div class="nb-logo">🌱</div><div class="nb-name">AgriSmart<span class="nb-plus">PLUS</span></div></div>
+    <div class="nb-right">
+      <div class="nb-user"><span>🛒</span><span id="c_navName">Consumer</span><span class="nb-badge consumer" data-i18n="consumer">Consumer</span><span class="sync-dot" id="c_syncDot"></span></div>
+      <div class="cart-btn" onclick="openCart()">🛒<span class="cart-cnt" id="cartCnt">0</span></div>
+      <button class="nb-btn" onclick="doLogout()" data-i18n="logout">Logout</button>
+    </div>
+  </nav>
+  <div class="app-tabs">
+    <button class="app-tab active" onclick="cShowTab('shop',this)">🌾 <span data-i18n="shop">Shop</span></button>
+    <button class="app-tab" onclick="cShowTab('myorders',this)">📦 <span data-i18n="my_orders">My Orders</span></button>
+    <button class="app-tab" onclick="cShowTab('farmers',this)">👨‍🌾 <span data-i18n="farmers">Farmers</span></button>
+  </div>
+  <div class="main-content">
+    <div id="c_shop">
+      <div class="hero blue"><div class="hero-title" data-i18n="shop_hero_title">🌾 Fresh From the Farm</div><div class="hero-sub" data-i18n="shop_hero_sub">Buy directly from verified farmers — fresh, organic, affordable!</div></div>
+      <div id="c_recommendations"></div>
+      <div class="search-wrap"><span>🔍</span><input type="text" id="c_search" data-i18n-placeholder="search_placeholder" placeholder="Search vegetables, fruits, grains..." oninput="cSearchProducts(this.value)"></div>
+      <div class="filter-row">
+        <span style="font-size:11px;font-weight:700;color:var(--muted)" data-i18n="category">Category:</span>
+        <div class="chip active" data-cat="all" onclick="cSetCat('all',this)" data-i18n="all">All</div>
+        <div class="chip" data-cat="vegetables" onclick="cSetCat('vegetables',this)">🥬 Vegetables</div>
+        <div class="chip" data-cat="fruits" onclick="cSetCat('fruits',this)">🍎 Fruits</div>
+        <div class="chip" data-cat="grains" onclick="cSetCat('grains',this)">🌾 Grains</div>
+        <div class="chip" data-cat="dairy" onclick="cSetCat('dairy',this)">🥛 Dairy</div>
+        <div class="chip" data-cat="spices" onclick="cSetCat('spices',this)">🌶️ Spices</div>
+      </div>
+      <div id="c_productsGrid"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+    <div id="c_myorders" style="display:none">
+      <div class="card"><div class="card-hdr"><div class="card-title">📦 <span data-i18n="my_orders">My Orders</span></div></div><div id="c_ordersList"><div class="loading"><div class="spinner"></div></div></div></div>
+    </div>
+    <div id="c_farmers" style="display:none">
+      <div class="card"><div class="card-hdr"><div class="card-title">👨‍🌾 <span data-i18n="our_farmers">Our Farmers</span></div></div><div id="c_farmersList"><div class="loading"><div class="spinner"></div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN APP
+══════════════════════════════════════ -->
+<div id="adminApp" class="screen">
+  <nav class="navbar">
+    <div class="nb-brand"><div class="nb-logo" style="background:linear-gradient(135deg,var(--berry),#e05050)">⚙️</div><div class="nb-name">AgriSmart<span class="nb-plus" style="background:linear-gradient(135deg,var(--berry),#c02020)">ADMIN</span></div></div>
+    <div class="nb-right">
+      <div class="nb-user"><span>⚙️</span><span id="a_navName">Admin</span><span class="nb-badge admin">Admin</span></div>
+      <button class="nb-btn" onclick="doLogout()" data-i18n="logout">Logout</button>
+    </div>
+  </nav>
+  <div class="app-tabs">
+    <button class="app-tab active" onclick="aShowTab('dashboard',this)">📊 Dashboard</button>
+    <button class="app-tab" onclick="aShowTab('users',this)">👥 Users</button>
+    <button class="app-tab" onclick="aShowTab('products',this)">🌾 Products</button>
+    <button class="app-tab" onclick="aShowTab('orders',this)">📦 Orders</button>
+    <button class="app-tab" onclick="aShowTab('moderation',this)">🛡️ Moderation</button>
+    <button class="app-tab" onclick="aShowTab('logs',this)">📋 Activity Logs</button>
+  </div>
+  <div class="main-content">
+    <div id="a_dashboard">
+      <div class="hero admin"><div class="hero-title">⚙️ Admin Dashboard</div><div class="hero-sub">Platform overview — users, products, revenue, and health.</div></div>
+      <div class="admin-grid">
+        <div class="admin-stat green"><div class="admin-stat-val" id="a_totalUsers">0</div><div class="admin-stat-lbl">Total Users</div></div>
+        <div class="admin-stat blue"><div class="admin-stat-val" id="a_totalProducts">0</div><div class="admin-stat-lbl">Total Products</div></div>
+        <div class="admin-stat red"><div class="admin-stat-val" id="a_totalOrders">0</div><div class="admin-stat-lbl">Total Orders</div></div>
+        <div class="admin-stat gold"><div class="admin-stat-val" id="a_totalRevenue">₹0</div><div class="admin-stat-lbl">Platform Revenue</div></div>
+        <div class="admin-stat green"><div class="admin-stat-val" id="a_farmers">0</div><div class="admin-stat-lbl">Active Farmers</div></div>
+        <div class="admin-stat blue"><div class="admin-stat-val" id="a_consumers">0</div><div class="admin-stat-lbl">Active Consumers</div></div>
+        <div class="admin-stat red"><div class="admin-stat-val" id="a_pendingOrders">0</div><div class="admin-stat-lbl">Pending Orders</div></div>
+        <div class="admin-stat gold"><div class="admin-stat-val" id="a_flagged">0</div><div class="admin-stat-lbl">Flagged Items</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px">
+        <div class="card"><div class="card-hdr"><div class="card-title">📈 Platform Revenue Trend</div></div><div class="chart-wrap"><canvas id="adminRevenueChart"></canvas></div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">👥 User Distribution</div></div><div class="chart-wrap"><canvas id="adminUserChart"></canvas></div></div>
+      </div>
+    </div>
+    <div id="a_users" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">👥 All Users</div><div style="display:flex;gap:8px"><span class="badge bg-green" id="a_farmerCount">0 Farmers</span><span class="badge bg-blue" id="a_consumerCount">0 Consumers</span></div></div>
+        <div class="search-wrap" style="margin-bottom:14px"><span>🔍</span><input type="text" id="a_userSearch" placeholder="Search by name or email..." oninput="aFilterUsers(this.value)"></div>
+        <div class="tbl-wrap" id="a_usersTable"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+    <div id="a_products" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">🌾 All Products</div><div id="a_productStats" style="font-size:12px;color:var(--muted)"></div></div>
+        <div class="tbl-wrap" id="a_productsTable"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+    <div id="a_orders" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">📦 All Orders</div></div>
+        <div class="filter-row">
+          <div class="chip active" onclick="aFilterOrders('all',this)">All</div>
+          <div class="chip" onclick="aFilterOrders('placed',this)">Placed</div>
+          <div class="chip" onclick="aFilterOrders('confirmed',this)">Confirmed</div>
+          <div class="chip" onclick="aFilterOrders('dispatched',this)">Dispatched</div>
+          <div class="chip" onclick="aFilterOrders('delivered',this)">Delivered</div>
+        </div>
+        <div class="tbl-wrap" id="a_ordersTable"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+    <div id="a_moderation" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">🛡️ Content Moderation</div><span class="badge bg-gold" id="a_modCount">0 items</span></div>
+        <div class="admin-tabs">
+          <div class="admin-tab active" onclick="aModTab('products',this)">🌾 Products</div>
+          <div class="admin-tab" onclick="aModTab('users',this)">👤 New Users</div>
+          <div class="admin-tab" onclick="aModTab('reports',this)">🚨 Reports</div>
+        </div>
+        <div id="a_modContent"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+    <div id="a_logs" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">📋 Activity Logs</div><button class="btn btn-outline btn-sm" onclick="clearLogs()">Clear Logs</button></div>
+        <div class="action-log" id="a_logList"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  
+  <div class="app-footer">
+    <div class="app-footer-logo">🌱</div>
+    <div class="app-footer-name">AgriSmart Connect PLUS</div>
+    <div class="app-footer-owners">👨‍💻 Created by <span>Kaushic MK</span> &amp; <span>Kaushal MK</span></div>
+    <div class="app-footer-copy">© 2025 MK AgriSmart. All rights reserved.</div>
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="productModal"><div class="modal"><div class="modal-hdr"><div class="modal-title" id="pm_title">Product</div><button class="modal-close" onclick="closeModal('productModal')">✕</button></div><div id="pm_content"></div></div></div>
+<div class="modal-bg" id="cartModal"><div class="modal" style="max-width:480px"><div class="modal-hdr"><div class="modal-title">🛒 <span data-i18n="your_cart">Your Cart</span></div><button class="modal-close" onclick="closeModal('cartModal')">✕</button></div><div id="cartContent"></div></div></div>
+<div class="modal-bg" id="orderModal"><div class="modal"><div class="modal-hdr"><div class="modal-title">📦 <span data-i18n="order_details">Order Details</span></div><button class="modal-close" onclick="closeModal('orderModal')">✕</button></div><div id="om_content"></div></div></div>
+<div class="modal-bg" id="userModal"><div class="modal"><div class="modal-hdr"><div class="modal-title">👤 User Details</div><button class="modal-close" onclick="closeModal('userModal')">✕</button></div><div id="um_content"></div></div></div>
+
+<script>
+// ══════════════════════════════════════════
+// 1. i18n — MULTI-LANGUAGE SUPPORT
+// ══════════════════════════════════════════
+const TRANSLATIONS = {
+  en: {
+    al_badge:'Farm-to-Table Platform', al_sub:'Smart farming with AI disease detection, live weather insights, sales analytics and personalised recommendations.',
+    feat1:'AI Crop Disease Detection', feat2:'Live Weather for Farmers', feat3:'Sales Analytics & Charts', feat4:'Personalised Recommendations', feat5:'Firebase Cloud Sync',
+    auth_welcome:'Welcome back 👋', auth_sub:'Sign in or create your account to continue',
+    login:'Login', register:'Register', signin:'🌱 Sign In', logout:'Logout',
+    quick_demo:'Quick demo', farmer_demo:'Farmer Demo', consumer_demo:'Consumer Demo',
+    i_am:'I am a...', farmer:'Farmer', consumer:'Consumer', admin:'Admin',
+    farmer_desc:'List & sell produce', consumer_desc:'Buy fresh food',
+    full_name:'Full Name *', phone:'Phone', email:'Email', password:'Password', location:'Location',
+    farm_name:'Farm Name', delivery_address:'Delivery Address', create_account:'🚀 Create Account',
+    overview:'Overview', products:'Products', add_product:'Add Product', orders:'Orders', analytics:'Analytics', ai_disease:'AI Disease',
+    farm_summary:"Here's your farm summary for today.", revenue:'Revenue', pending:'Pending', rain:'Rain', visibility:'Visibility', feels_like:'Feels Like',
+    farm_advisory:'🌾 Farm Advisory', recent_orders:'Recent Orders', my_products:'My Listed Products', add:'Add', list_product:'List New Product',
+    product_name:'Product Name *', category:'Category:', description:'Description', price:'Price (₹) *', unit:'Unit *', quantity:'Quantity *',
+    organic_label:'🌿 Organic product', list_product_btn:'🌱 List Product',
+    all_orders:'All Orders', filter:'Filter:', all:'All', new_orders:'New', confirmed:'Confirmed', dispatched:'Dispatched', delivered:'Delivered',
+    total_revenue:'Total Revenue', total_orders:'Total Orders', avg_order:'Avg Order Value', top_product:'Top Product',
+    revenue_trend:'Revenue Trend', category_sales:'Category Sales', product_performance:'Product Performance',
+    ai_title:'AI Crop Disease Detector', ai_desc:'Select your crop type and observed symptoms — AI will identify the disease and provide a complete treatment plan.',
+    select_crop:'Select Crop', select_symptoms:'Select Symptoms (can choose multiple)',
+    ai_tap:'Tap to Analyse Disease', ai_hint:'Upload crop photo OR select symptoms above — AI will diagnose',
+    ai_analysing:'🤖 Analysing crop symptoms...', detected_disease:'Detected Disease', confidence:'Confidence:', severity:'Severity',
+    spread_risk:'Spread Risk', cause:'Cause', affected_part:'Affected Part', treatment_plan:'💊 Treatment Plan', detect_another:'🔄 Detect Another Disease',
+    shop:'Shop', my_orders:'My Orders', farmers:'Farmers', our_farmers:'Our Farmers',
+    shop_hero_title:'🌾 Fresh From the Farm', shop_hero_sub:'Buy directly from verified farmers — fresh, organic, affordable!',
+    search_placeholder:'Search vegetables, fruits, grains...',
+    your_cart:'Your Cart', order_details:'Order Details',
+    pwa_title:'Install AgriSmart App', pwa_sub:'Add to home screen for offline access', pwa_install:'Install',
+    product_image:'Product Image',
+  },
+  hi: {
+    al_badge:'खेत-से-थाली मंच', al_sub:'AI रोग पहचान, लाइव मौसम अपडेट, बिक्री विश्लेषण और व्यक्तिगत सिफारिशों के साथ स्मार्ट खेती।',
+    feat1:'AI फसल रोग पहचान', feat2:'किसानों के लिए लाइव मौसम', feat3:'बिक्री विश्लेषण', feat4:'व्यक्तिगत सिफारिशें', feat5:'Firebase क्लाउड सिंक',
+    auth_welcome:'वापस स्वागत है 👋', auth_sub:'जारी रखने के लिए साइन इन करें या खाता बनाएं',
+    login:'लॉगिन', register:'रजिस्टर', signin:'🌱 साइन इन', logout:'लॉगआउट',
+    quick_demo:'त्वरित डेमो', farmer_demo:'किसान डेमो', consumer_demo:'उपभोक्ता डेमो',
+    i_am:'मैं हूँ...', farmer:'किसान', consumer:'उपभोक्ता', admin:'प्रशासक',
+    farmer_desc:'उत्पाद सूचीबद्ध करें और बेचें', consumer_desc:'ताजा खाना खरीदें',
+    full_name:'पूरा नाम *', phone:'फ़ोन', email:'ईमेल', password:'पासवर्ड', location:'स्थान',
+    farm_name:'खेत का नाम', delivery_address:'डिलीवरी पता', create_account:'🚀 खाता बनाएं',
+    overview:'अवलोकन', products:'उत्पाद', add_product:'उत्पाद जोड़ें', orders:'ऑर्डर', analytics:'विश्लेषण', ai_disease:'AI रोग',
+    farm_summary:'आज के लिए आपका खेत सारांश।', revenue:'राजस्व', pending:'लंबित', rain:'बारिश', visibility:'दृश्यता', feels_like:'महसूस होता है',
+    farm_advisory:'🌾 कृषि सलाह', recent_orders:'हाल के ऑर्डर', my_products:'मेरे उत्पाद', add:'जोड़ें', list_product:'नया उत्पाद सूचीबद्ध करें',
+    product_name:'उत्पाद का नाम *', category:'श्रेणी:', description:'विवरण', price:'मूल्य (₹) *', unit:'इकाई *', quantity:'मात्रा *',
+    organic_label:'🌿 जैविक उत्पाद', list_product_btn:'🌱 उत्पाद सूचीबद्ध करें',
+    all_orders:'सभी ऑर्डर', filter:'फ़िल्टर:', all:'सभी', new_orders:'नए', confirmed:'पुष्टि', dispatched:'भेजा', delivered:'पहुंचा',
+    total_revenue:'कुल राजस्व', total_orders:'कुल ऑर्डर', avg_order:'औसत ऑर्डर', top_product:'शीर्ष उत्पाद',
+    revenue_trend:'राजस्व ट्रेंड', category_sales:'श्रेणी बिक्री', product_performance:'उत्पाद प्रदर्शन',
+    ai_title:'AI फसल रोग डिटेक्टर', ai_desc:'अपनी फसल और लक्षण चुनें — AI रोग की पहचान करेगा और उपचार योजना देगा।',
+    select_crop:'फसल चुनें', select_symptoms:'लक्षण चुनें (एक से अधिक)',
+    ai_tap:'रोग की जाँच करें', ai_hint:'फसल की फोटो अपलोड करें या लक्षण चुनें',
+    ai_analysing:'🤖 फसल के लक्षण विश्लेषण हो रहा है...', detected_disease:'पता चला रोग', confidence:'विश्वास:', severity:'गंभीरता',
+    spread_risk:'फैलाव जोखिम', cause:'कारण', affected_part:'प्रभावित भाग', treatment_plan:'💊 उपचार योजना', detect_another:'🔄 दूसरा रोग पहचानें',
+    shop:'दुकान', my_orders:'मेरे ऑर्डर', farmers:'किसान', our_farmers:'हमारे किसान',
+    shop_hero_title:'🌾 खेत से ताज़ा', shop_hero_sub:'सत्यापित किसानों से सीधे खरीदें — ताज़ा, जैविक, किफायती!',
+    search_placeholder:'सब्जियाँ, फल, अनाज खोजें...', your_cart:'आपकी टोकरी', order_details:'ऑर्डर विवरण',
+    pwa_title:'AgriSmart ऐप इंस्टॉल करें', pwa_sub:'ऑफलाइन एक्सेस के लिए होम स्क्रीन पर जोड़ें', pwa_install:'इंस्टॉल',
+    product_image:'उत्पाद छवि',
+  },
+  ta: {
+    al_badge:'வயல்-முதல்-பந்தி தளம்', al_sub:'AI நோய் கண்டறிதல், நேரடி வானிலை, விற்பனை பகுப்பாய்வு மற்றும் தனிப்பயனாக்கப்பட்ட பரிந்துரைகளுடன் ஸ்மார்ட் விவசாயம்.',
+    feat1:'AI பயிர் நோய் கண்டறிதல்', feat2:'விவசாயிகளுக்கு நேரடி வானிலை', feat3:'விற்பனை பகுப்பாய்வு', feat4:'தனிப்பயன் பரிந்துரைகள்', feat5:'Firebase கிளவுட் ஒத்திசைவு',
+    auth_welcome:'மீண்டும் வரவேற்கிறோம் 👋', auth_sub:'தொடர உள்நுழையுங்கள் அல்லது கணக்கை உருவாக்குங்கள்',
+    login:'உள்நுழைவு', register:'பதிவு', signin:'🌱 உள்நுழைவு', logout:'வெளியேறு',
+    quick_demo:'விரைவு டெமோ', farmer_demo:'விவசாயி டெமோ', consumer_demo:'நுகர்வோர் டெமோ',
+    i_am:'நான்...', farmer:'விவசாயி', consumer:'நுகர்வோர்', admin:'நிர்வாகி',
+    farmer_desc:'பட்டியலிட்டு விற்கவும்', consumer_desc:'புதிய உணவு வாங்கவும்',
+    full_name:'முழு பெயர் *', phone:'தொலைபேசி', email:'மின்னஞ்சல்', password:'கடவுச்சொல்', location:'இடம்',
+    farm_name:'பண்ணை பெயர்', delivery_address:'டெலிவரி முகவரி', create_account:'🚀 கணக்கை உருவாக்கு',
+    overview:'மேலோட்டம்', products:'பொருட்கள்', add_product:'பொருள் சேர்', orders:'ஆர்டர்கள்', analytics:'பகுப்பாய்வு', ai_disease:'AI நோய்',
+    farm_summary:'இன்றைய உங்கள் பண்ணை சுருக்கம்.', revenue:'வருவாய்', pending:'நிலுவை', rain:'மழை', visibility:'தெரிவுத்திறன்', feels_like:'உணர்வு',
+    farm_advisory:'🌾 விவசாய ஆலோசனை', recent_orders:'சமீபத்திய ஆர்டர்கள்', my_products:'என் பொருட்கள்', add:'சேர்', list_product:'புதிய பொருளை பட்டியலிடு',
+    product_name:'பொருளின் பெயர் *', category:'வகை:', description:'விளக்கம்', price:'விலை (₹) *', unit:'அலகு *', quantity:'அளவு *',
+    organic_label:'🌿 இயற்கை பொருள்', list_product_btn:'🌱 பொருளை பட்டியலிடு',
+    all_orders:'அனைத்து ஆர்டர்கள்', filter:'வடிகட்டி:', all:'அனைத்தும்', new_orders:'புதியது', confirmed:'உறுதிப்படுத்தல்', dispatched:'அனுப்பப்பட்டது', delivered:'வழங்கப்பட்டது',
+    total_revenue:'மொத்த வருவாய்', total_orders:'மொத்த ஆர்டர்கள்', avg_order:'சராசரி ஆர்டர்', top_product:'சிறந்த பொருள்',
+    revenue_trend:'வருவாய் போக்கு', category_sales:'வகை விற்பனை', product_performance:'பொருள் செயல்திறன்',
+    ai_title:'AI பயிர் நோய் கண்டுபிடிப்பான்', ai_desc:'உங்கள் பயிர் வகை மற்றும் அறிகுறிகளை தேர்ந்தெடுங்கள் — AI நோயை கண்டறிந்து சிகிச்சை திட்டம் தரும்.',
+    select_crop:'பயிரை தேர்ந்தெடு', select_symptoms:'அறிகுறிகளை தேர்ந்தெடு',
+    ai_tap:'நோயை பகுப்பாய்வு செய்', ai_hint:'பயிர் படம் பதிவேற்றவும் அல்லது அறிகுறிகளை தேர்ந்தெடுக்கவும்',
+    ai_analysing:'🤖 பயிர் அறிகுறிகளை பகுப்பாய்வு செய்கிறது...', detected_disease:'கண்டறிந்த நோய்', confidence:'நம்பகத்தன்மை:', severity:'தீவிரம்',
+    spread_risk:'பரவல் ஆபத்து', cause:'காரணம்', affected_part:'பாதிக்கப்பட்ட பகுதி', treatment_plan:'💊 சிகிச்சை திட்டம்', detect_another:'🔄 மற்றொரு நோயை கண்டறி',
+    shop:'கடை', my_orders:'என் ஆர்டர்கள்', farmers:'விவசாயிகள்', our_farmers:'எங்கள் விவசாயிகள்',
+    shop_hero_title:'🌾 வயலிலிருந்து நேரடியாக', shop_hero_sub:'சரிபார்க்கப்பட்ட விவசாயிகளிடம் இருந்து நேரடியாக வாங்குங்கள்!',
+    search_placeholder:'காய்கறிகள், பழங்கள், தானியங்கள் தேடுங்கள்...', your_cart:'உங்கள் கூடை', order_details:'ஆர்டர் விவரங்கள்',
+    pwa_title:'AgriSmart ஆப்பை நிறுவு', pwa_sub:'ஆஃப்லைன் அணுகலுக்கு முகப்பு திரையில் சேர்க்கவும்', pwa_install:'நிறுவு',
+    product_image:'பொருள் படம்',
+  },
+  te: {
+    al_badge:'పొలం-నుండి-భోజనం వేదిక', al_sub:'AI వ్యాధి గుర్తింపు, నేరుగా వాతావరణ సమాచారం, విక్రయ విశ్లేషణలు మరియు వ్యక్తిగత సిఫారసులతో స్మార్ట్ వ్యవసాయం.',
+    feat1:'AI పంట వ్యాధి గుర్తింపు', feat2:'రైతులకు నేరుగా వాతావరణం', feat3:'విక్రయ విశ్లేషణలు', feat4:'వ్యక్తిగత సిఫారసులు', feat5:'Firebase క్లౌడ్ సమకాలీకరణ',
+    auth_welcome:'తిరిగి స్వాగతం 👋', auth_sub:'కొనసాగించడానికి సైన్ ఇన్ చేయండి లేదా ఖాతా సృష్టించండి',
+    login:'లాగిన్', register:'నమోదు', signin:'🌱 సైన్ ఇన్', logout:'లాగ్అవుట్',
+    quick_demo:'శీఘ్ర డెమో', farmer_demo:'రైతు డెమో', consumer_demo:'వినియోగదారు డెమో',
+    i_am:'నేను...', farmer:'రైతు', consumer:'వినియోగదారు', admin:'నిర్వాహకుడు',
+    farmer_desc:'జాబితా చేయండి & అమ్మండి', consumer_desc:'తాజా ఆహారం కొనండి',
+    full_name:'పూర్తి పేరు *', phone:'ఫోన్', email:'ఇమెయిల్', password:'పాస్వర్డ్', location:'స్థానం',
+    farm_name:'పొలం పేరు', delivery_address:'డెలివరీ చిరునామా', create_account:'🚀 ఖాతా సృష్టించు',
+    overview:'అవలోకనం', products:'ఉత్పత్తులు', add_product:'ఉత్పత్తి జోడించు', orders:'ఆర్డర్లు', analytics:'విశ్లేషణలు', ai_disease:'AI వ్యాధి',
+    farm_summary:'నేటి మీ పొలం సారాంశం.', revenue:'ఆదాయం', pending:'పెండింగ్', rain:'వర్షం', visibility:'దృశ్యమానత', feels_like:'అనిపిస్తుంది',
+    farm_advisory:'🌾 వ్యవసాయ సలహా', recent_orders:'ఇటీవలి ఆర్డర్లు', my_products:'నా ఉత్పత్తులు', add:'జోడించు', list_product:'కొత్త ఉత్పత్తి జాబితా',
+    product_name:'ఉత్పత్తి పేరు *', category:'వర్గం:', description:'వివరణ', price:'ధర (₹) *', unit:'యూనిట్ *', quantity:'పరిమాణం *',
+    organic_label:'🌿 సేంద్రీయ ఉత్పత్తి', list_product_btn:'🌱 ఉత్పత్తి జాబితా చేయి',
+    all_orders:'అన్ని ఆర్డర్లు', filter:'వడపోత:', all:'అన్నీ', new_orders:'కొత్తవి', confirmed:'ధృవీకరించబడింది', dispatched:'పంపబడింది', delivered:'డెలివరీ అయింది',
+    total_revenue:'మొత్తం ఆదాయం', total_orders:'మొత్తం ఆర్డర్లు', avg_order:'సగటు ఆర్డర్', top_product:'అగ్ర ఉత్పత్తి',
+    revenue_trend:'ఆదాయ ట్రెండ్', category_sales:'వర్గం అమ్మకాలు', product_performance:'ఉత్పత్తి పనితీరు',
+    ai_title:'AI పంట వ్యాధి డిటెక్టర్', ai_desc:'మీ పంట రకం మరియు లక్షణాలను ఎంచుకోండి — AI వ్యాధిని గుర్తించి చికిత్స ప్రణాళిక అందిస్తుంది.',
+    select_crop:'పంటను ఎంచుకో', select_symptoms:'లక్షణాలను ఎంచుకో',
+    ai_tap:'వ్యాధిని విశ్లేషించు', ai_hint:'పంట ఫోటో అప్లోడ్ చేయండి లేదా లక్షణాలు ఎంచుకోండి',
+    ai_analysing:'🤖 పంట లక్షణాలు విశ్లేషిస్తున్నాం...', detected_disease:'గుర్తించిన వ్యాధి', confidence:'నమ్మకం:', severity:'తీవ్రత',
+    spread_risk:'వ్యాప్తి ప్రమాదం', cause:'కారణం', affected_part:'ప్రభావిత భాగం', treatment_plan:'💊 చికిత్స ప్రణాళిక', detect_another:'🔄 మరొక వ్యాధి గుర్తించు',
+    shop:'దుకాణం', my_orders:'నా ఆర్డర్లు', farmers:'రైతులు', our_farmers:'మా రైతులు',
+    shop_hero_title:'🌾 పొలం నుండి నేరుగా', shop_hero_sub:'ధృవీకరించిన రైతుల నుండి నేరుగా కొనండి — తాజాగా, సేంద్రీయంగా, సదుపాయంగా!',
+    search_placeholder:'కూరగాయలు, పండ్లు, ధాన్యాలు వెతకండి...', your_cart:'మీ బుట్ట', order_details:'ఆర్డర్ వివరాలు',
+    pwa_title:'AgriSmart యాప్ ఇన్స్టాల్ చేయండి', pwa_sub:'ఆఫ్లైన్ యాక్సెస్ కోసం హోమ్ స్క్రీన్‌కు జోడించండి', pwa_install:'ఇన్స్టాల్',
+    product_image:'ఉత్పత్తి చిత్రం',
+  }
+};
+
+let currentLang = localStorage.getItem('agri_lang') || 'en';
+
+function t(key) {
+  return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['en']?.[key] || key;
+}
+
+function setLang(lang, btn) {
+  currentLang = lang;
+  localStorage.setItem('agri_lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.documentElement.lang = lang;
+  applyTranslations();
+  toast(lang === 'hi' ? 'भाषा बदली गई' : lang === 'ta' ? 'மொழி மாற்றப்பட்டது' : lang === 'te' ? 'భాష మార్చబడింది' : 'Language changed', 'info');
+}
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+}
+
+// ══════════════════════════════════════════
+// 2. FIREBASE INTEGRATION
+// ══════════════════════════════════════════
+let db = null, auth = null, firebaseReady = false, demoMode = false;
+let unsubscribers = [];
+
+const DEFAULT_FB_CONFIG = {
+  // Users fill this in — or use demo mode (localStorage)
+};
+
+function initFirebaseFromForm() {
+  const cfg = {
+    apiKey: document.getElementById('fb_apiKey').value.trim(),
+    authDomain: document.getElementById('fb_authDomain').value.trim(),
+    projectId: document.getElementById('fb_projectId').value.trim(),
+    storageBucket: document.getElementById('fb_storageBucket').value.trim(),
+    messagingSenderId: document.getElementById('fb_messagingSenderId').value.trim(),
+    appId: document.getElementById('fb_appId').value.trim(),
+  };
+  if (!cfg.apiKey || !cfg.projectId) { document.getElementById('fb_err').textContent = 'API Key and Project ID required'; return; }
+  localStorage.setItem('agri_fbconfig', JSON.stringify(cfg));
+  setupFirebase(cfg);
+}
+
+function setupFirebase(config) {
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(config);
+    else firebase.app();
+    db = firebase.firestore();
+    auth = firebase.auth();
+    firebaseReady = true;
+    demoMode = false;
+    showFbBanner('✅', 'Connected to Firebase — data syncs across devices!', 'success');
+    document.getElementById('fbSetup').style.display = 'none';
+    setSyncDots('online');
+    addLog('system', '☁️ Firebase connected', 'Real-time sync active');
+    setTimeout(() => hideFbBanner(), 4000);
+    seedFirestoreIfEmpty();
+  } catch (e) {
+    console.warn('Firebase setup error:', e);
+    useDemoMode();
+  }
+}
+
+function useDemoMode() {
+  demoMode = true;
+  firebaseReady = false;
+  showFbBanner('💾', 'Running in Local Storage mode — configure Firebase for cross-device sync', 'offline');
+  document.getElementById('fbSetup').style.display = 'none';
+  setSyncDots('offline');
+  seedDemoData();
+  setTimeout(() => hideFbBanner(), 5000);
+}
+
+function showFbBanner(ico, msg, type) {
+  const b = document.getElementById('fbBanner');
+  document.getElementById('fbBannerIco').textContent = ico;
+  document.getElementById('fbBannerMsg').textContent = msg;
+  b.className = 'fb-banner show' + (type === 'offline' ? ' offline' : type === 'error' ? ' error' : '');
+}
+function hideFbBanner() { document.getElementById('fbBanner').classList.remove('show'); }
+
+function setSyncDots(status) {
+  document.querySelectorAll('.sync-dot').forEach(d => {
+    d.className = 'sync-dot';
+    if (status === 'syncing') d.classList.add('syncing');
+    else if (status === 'offline') d.classList.add('offline');
+    else if (status === 'error') d.classList.add('error');
+  });
+}
+
+// ── Firestore CRUD wrappers (fall back to localStorage in demo mode) ──
+
+async function fbGetAll(col) {
+  if (demoMode) return LS.get(col) || [];
+  try {
+    const snap = await db.collection(col).get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { return LS.get(col) || []; }
+}
+
+async function fbSet(col, id, data) {
+  if (demoMode) {
+    const all = LS.get(col) || [];
+    const idx = all.findIndex(x => x.id === id);
+    if (idx >= 0) all[idx] = { ...data, id };
+    else all.push({ ...data, id });
+    LS.set(col, all);
+    return true;
+  }
+  try {
+    setSyncDots('syncing');
+    await db.collection(col).doc(id).set(data, { merge: true });
+    setSyncDots('online');
+    return true;
+  } catch(e) { setSyncDots('error'); return false; }
+}
+
+async function fbDelete(col, id) {
+  if (demoMode) {
+    LS.set(col, (LS.get(col) || []).filter(x => x.id !== id));
+    return true;
+  }
+  try {
+    await db.collection(col).doc(id).delete();
+    return true;
+  } catch(e) { return false; }
+}
+
+function fbListen(col, callback) {
+  if (demoMode) { callback(LS.get(col) || []); return; }
+  try {
+    const unsub = db.collection(col).onSnapshot(snap => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    unsubscribers.push(unsub);
+  } catch(e) { callback(LS.get(col) || []); }
+}
+
+// ── Local Storage fallback ──
+const LS = {
+  get: k => JSON.parse(localStorage.getItem('agri_' + k) || 'null'),
+  set: (k, v) => localStorage.setItem('agri_' + k, JSON.stringify(v)),
+  del: k => localStorage.removeItem('agri_' + k)
+};
+
+async function seedFirestoreIfEmpty() {
+  if (!firebaseReady) return;
+  try {
+    const snap = await db.collection('users').get();
+    if (!snap.empty) return;
+    const { users, products, orders } = getDemoData();
+    for (const u of users) await db.collection('users').doc(u.id).set(u);
+    for (const p of products) await db.collection('products').doc(p.id).set(p);
+    for (const o of orders) await db.collection('orders').doc(o.id).set(o);
+  } catch(e) {}
+}
+
+function seedDemoData() {
+  if (LS.get('users')?.find(u => u.email === 'farmer@demo.com')) return;
+  const { users, products, orders } = getDemoData();
+  LS.set('users', users); LS.set('products', products); LS.set('orders', orders);
+}
+
+function getDemoData() {
+  const now = Date.now();
+  const users = [
+    { id:'u1', name:'Ramesh Kumar', email:'farmer@demo.com', password:'demo123', role:'farmer', phone:'+91 98765 43210', farmName:'Green Valley Farm', location:'Karnal, Haryana', upiId:'ramesh@upi', createdAt:now, status:'active' },
+    { id:'u2', name:'Priya Devi', email:'farmer2@demo.com', password:'demo123', role:'farmer', phone:'+91 87654 32109', farmName:'Sunrise Organic Farm', location:'Amritsar, Punjab', upiId:'priya@upi', createdAt:now, status:'active' },
+    { id:'u3', name:'Amit Sharma', email:'consumer@demo.com', password:'demo123', role:'consumer', phone:'+91 76543 21098', address:'B-12, Sector 22, Noida', createdAt:now, status:'active' },
+    { id:'u0', name:'Admin', email:'admin@demo.com', password:'admin123', role:'admin', phone:'+91 00000 00000', createdAt:now, status:'active' },
+    { id:'u4', name:'Kaushic MK', email:'kaushic@agrismart.com', password:'kaushic123', role:'farmer', phone:'+91 99887 76655', farmName:'MK Organic Farms', location:'Coimbatore, Tamil Nadu', upiId:'kaushic@upi', createdAt:now, status:'active' },
+    { id:'u5', name:'Kaushal MK', email:'kaushal@agrismart.com', password:'kaushal123', role:'consumer', phone:'+91 99776 65544', address:'MK Residency, Coimbatore, Tamil Nadu', createdAt:now, status:'active' },
+  ];
+  const products = [
+    { id:'p1', farmerId:'u1', farmerName:'Ramesh Kumar', farmName:'Green Valley Farm', farmerLocation:'Karnal, Haryana', farmerUpi:'ramesh@upi', name:'Fresh Tomatoes', category:'vegetables', description:'Freshly picked red tomatoes, chemical free.', price:28, unit:'kg', quantity:150, organic:true, image:'', emoji:'🍅', rating:4.8, sold:42, createdAt:now-86400000*2, status:'active' },
+    { id:'p2', farmerId:'u1', farmerName:'Ramesh Kumar', farmName:'Green Valley Farm', farmerLocation:'Karnal, Haryana', farmerUpi:'ramesh@upi', name:'Organic Wheat', category:'grains', description:'Grade A wheat, ideal for chapati.', price:32, unit:'kg', quantity:500, organic:true, image:'', emoji:'🌾', rating:4.9, sold:120, createdAt:now-86400000*5, status:'active' },
+    { id:'p3', farmerId:'u2', farmerName:'Priya Devi', farmName:'Sunrise Organic Farm', farmerLocation:'Amritsar, Punjab', farmerUpi:'priya@upi', name:'Fresh Spinach', category:'vegetables', description:'Tender baby spinach, pesticide-free.', price:38, unit:'kg', quantity:80, organic:true, image:'', emoji:'🥬', rating:4.7, sold:28, createdAt:now-86400000*1, status:'active' },
+    { id:'p4', farmerId:'u2', farmerName:'Priya Devi', farmName:'Sunrise Organic Farm', farmerLocation:'Amritsar, Punjab', farmerUpi:'priya@upi', name:'Alphonso Mangoes', category:'fruits', description:'Premium Alphonso mangoes, sweet and aromatic.', price:120, unit:'kg', quantity:60, organic:false, image:'', emoji:'🥭', rating:5.0, sold:35, createdAt:now-86400000*3, status:'active' },
+    { id:'p5', farmerId:'u1', farmerName:'Ramesh Kumar', farmName:'Green Valley Farm', farmerLocation:'Karnal, Haryana', farmerUpi:'ramesh@upi', name:'Pure Desi Ghee', category:'dairy', description:'Pure A2 cow ghee, wooden churned.', price:520, unit:'500ml', quantity:30, organic:true, image:'', emoji:'🫙', rating:4.9, sold:15, createdAt:now-86400000*4, status:'active' },
+    { id:'p6', farmerId:'u2', farmerName:'Priya Devi', farmName:'Sunrise Organic Farm', farmerLocation:'Amritsar, Punjab', farmerUpi:'priya@upi', name:'Red Onions', category:'vegetables', description:'Fresh red onions, premium quality.', price:22, unit:'kg', quantity:200, organic:false, image:'', emoji:'🧅', rating:4.5, sold:88, createdAt:now-86400000*1, status:'active' },
+    { id:'p7', farmerId:'u1', farmerName:'Ramesh Kumar', farmName:'Green Valley Farm', farmerLocation:'Karnal, Haryana', farmerUpi:'ramesh@upi', name:'Basmati Rice', category:'grains', description:'Long grain basmati rice, aromatic.', price:85, unit:'kg', quantity:300, organic:false, image:'', emoji:'🌾', rating:4.6, sold:65, createdAt:now-86400000*6, status:'active' },
+    { id:'p8', farmerId:'u4', farmerName:'Kaushic MK', farmName:'MK Organic Farms', farmerLocation:'Coimbatore, Tamil Nadu', farmerUpi:'kaushic@upi', name:'Organic Turmeric', category:'spices', description:'Fresh ground turmeric from MK Organic Farms — high curcumin content, sun-dried.', price:180, unit:'kg', quantity:120, organic:true, image:'', emoji:'🌿', rating:4.9, sold:38, createdAt:now-86400000*2, status:'active' },
+    { id:'p9', farmerId:'u4', farmerName:'Kaushic MK', farmName:'MK Organic Farms', farmerLocation:'Coimbatore, Tamil Nadu', farmerUpi:'kaushic@upi', name:'Fresh Coconuts', category:'fruits', description:'Tender green coconuts, straight from MK farm in Coimbatore.', price:45, unit:'piece', quantity:200, organic:true, image:'', emoji:'🥥', rating:4.8, sold:92, createdAt:now-86400000*1, status:'active' },
+    { id:'p10', farmerId:'u4', farmerName:'Kaushic MK', farmName:'MK Organic Farms', farmerLocation:'Coimbatore, Tamil Nadu', farmerUpi:'kaushic@upi', name:'Banana (Nendran)', category:'fruits', description:'Premium Nendran bananas — ideal for chips and cooking.', price:60, unit:'dozen', quantity:80, organic:true, image:'', emoji:'🍌', rating:4.7, sold:55, createdAt:now-86400000*3, status:'active' },
+  ];
+  const orders = [
+    { id:'o1', orderId:'AGR20241201', consumerId:'u3', consumerName:'Amit Sharma', consumerPhone:'+91 76543 21098', farmerId:'u1', farmerName:'Ramesh Kumar', items:[{productId:'p1',name:'Fresh Tomatoes',emoji:'🍅',price:28,unit:'kg',quantity:5,image:''}], totalAmount:140, address:{name:'Amit Sharma',phone:'+91 76543 21098',address:'B-12, Sector 22',city:'Noida',pincode:'201301'}, paymentMethod:'upi', paymentStatus:'paid', status:'delivered', statusHistory:[{status:'placed',time:now-86400000*3},{status:'confirmed',time:now-86400000*3+3600000},{status:'dispatched',time:now-86400000*2},{status:'delivered',time:now-86400000*1}], createdAt:now-86400000*3 },
+    { id:'o2', orderId:'AGR20241202', consumerId:'u3', consumerName:'Amit Sharma', consumerPhone:'+91 76543 21098', farmerId:'u1', farmerName:'Ramesh Kumar', items:[{productId:'p2',name:'Organic Wheat',emoji:'🌾',price:32,unit:'kg',quantity:10,image:''}], totalAmount:320, address:{name:'Amit Sharma',phone:'+91 76543 21098',address:'B-12, Sector 22',city:'Noida',pincode:'201301'}, paymentMethod:'cod', paymentStatus:'pending', status:'dispatched', statusHistory:[{status:'placed',time:now-86400000*1},{status:'confirmed',time:now-86400000*1+3600000},{status:'dispatched',time:now-3600000*4}], createdAt:now-86400000*1 },
+    { id:'o3', orderId:'AGR20241203', consumerId:'u3', consumerName:'Amit Sharma', consumerPhone:'+91 76543 21098', farmerId:'u2', farmerName:'Priya Devi', items:[{productId:'p4',name:'Alphonso Mangoes',emoji:'🥭',price:120,unit:'kg',quantity:2,image:''}], totalAmount:240, address:{name:'Amit Sharma',phone:'+91 76543 21098',address:'B-12, Sector 22',city:'Noida',pincode:'201301'}, paymentMethod:'upi', paymentStatus:'pending', status:'placed', statusHistory:[{status:'placed',time:now-3600000*2}], createdAt:now-3600000*2 },
+  ];
+  return { users, products, orders };
+}
+
+// ══════════════════════════════════════════
+// 3. UTILS
+// ══════════════════════════════════════════
+const uid = () => 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+const fmtCurr = n => '₹' + Number(n).toLocaleString('en-IN');
+const fmtDate = ts => new Date(ts).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+const fmtTime = ts => new Date(ts).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+function toast(msg, type='success') {
+  const a = document.getElementById('toastArea');
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]}</span>${msg}`;
+  a.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+const openModal = id => document.getElementById(id)?.classList.add('open');
+const closeModal = id => document.getElementById(id)?.classList.remove('open');
+const getCatEmoji = cat => ({vegetables:'🥬',fruits:'🍎',grains:'🌾',dairy:'🥛',spices:'🌶️',other:'🌱'}[cat]||'🌱');
+const getCatBg = cat => ({vegetables:'#f0fff4',fruits:'#fffbf0',grains:'#fdfaf0',dairy:'#f8f8ff',spices:'#fff5f0',other:'#f7f4ee'}[cat]||'#f7f4ee');
+function getStatusBadge(s) {
+  const m = { placed:'bg-blue', confirmed:'bg-green', packed:'bg-gold', dispatched:'bg-gold', delivered:'bg-green', cancelled:'bg-red', pending:'bg-gray', paid:'bg-green', active:'bg-green', suspended:'bg-red', flagged:'bg-orange' };
+  return `<span class="badge ${m[s]||'bg-gray'}">${s}</span>`;
+}
+
+// ── Activity log ──
+let activityLogs = JSON.parse(localStorage.getItem('agri_logs') || '[]');
+function addLog(type, text, detail='') {
+  activityLogs.unshift({ type, text, detail, time: Date.now() });
+  if (activityLogs.length > 100) activityLogs = activityLogs.slice(0, 100);
+  localStorage.setItem('agri_logs', JSON.stringify(activityLogs));
+}
+function clearLogs() {
+  activityLogs = [];
+  localStorage.setItem('agri_logs', '[]');
+  renderLogs();
+  toast('Logs cleared', 'info');
+}
+function renderLogs() {
+  const el = document.getElementById('a_logList');
+  if (!el) return;
+  if (!activityLogs.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-title">No activity yet</div></div>'; return; }
+  const icons = { auth:'🔐', product:'🌾', order:'📦', system:'⚙️', admin:'🛡️', user:'👤' };
+  el.innerHTML = activityLogs.map(l => `<div class="log-item"><div class="log-ico">${icons[l.type]||'📌'}</div><div class="log-text"><strong>${l.text}</strong>${l.detail?`<br><span style="color:var(--muted)">${l.detail}</span>`:''}</div><div class="log-time">${fmtTime(l.time)}</div></div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// 4. AUTH
+// ══════════════════════════════════════════
+let currentUser = null;
+let selectedRole = 'farmer';
+
+function fillDemo(role) {
+  const creds = { farmer:['farmer@demo.com','demo123'], consumer:['consumer@demo.com','demo123'], admin:['admin@demo.com','admin123'] };
+  const [e, p] = creds[role] || [];
+  document.getElementById('li_email').value = e || '';
+  document.getElementById('li_pass').value = p || '';
+}
+
+async function quickLoginByEmail(email, pass) {
+  // Find the button that was clicked and show spinner
+  const cards = document.querySelectorAll('.quick-login-card');
+  const card = [...cards].find(c => c.getAttribute('onclick') && c.getAttribute('onclick').includes(email));
+  const arrow = card ? card.querySelector('.qlc-arrow') : null;
+  if (arrow) arrow.innerHTML = '<div class="qlc-spinner"></div>';
+  document.getElementById('loginErr').textContent = '';
+  await new Promise(r => setTimeout(r, 420));
+  const users = await fbGetAll('users');
+  const user = users.find(u => u.email === email && u.password === pass);
+  if (!user) {
+    if (arrow) arrow.innerHTML = '→';
+    document.getElementById('loginErr').textContent = 'Account not found — click "Use Local Storage" below first.';
+    return;
+  }
+  LS.set('currentUser', user);
+  currentUser = user;
+  addLog('auth', '🔐 Login: ' + user.name, 'Role: ' + user.role);
+  launchApp(user);
+}
+
+async function quickLogin(role) {
+  const creds = { farmer:['farmer@demo.com','demo123'], consumer:['consumer@demo.com','demo123'], admin:['admin@demo.com','admin123'] };
+  const [email, pass] = creds[role];
+  const cards = document.querySelectorAll('.quick-login-card');
+  const card = [...cards].find(c => c.getAttribute('onclick') && c.getAttribute('onclick').includes("'" + role + "'"));
+  const origArrow = card ? card.querySelector('.qlc-arrow') : null;
+  if (origArrow) origArrow.innerHTML = '<div class="qlc-spinner"></div>';
+  document.getElementById('loginErr').textContent = '';
+  await new Promise(r => setTimeout(r, 420));
+  const users = await fbGetAll('users');
+  const user = users.find(u => u.email === email && u.password === pass);
+  if (!user) {
+    if (origArrow) origArrow.innerHTML = '→';
+    document.getElementById('loginErr').textContent = 'Demo data not loaded — click "Use Local Storage" below first.';
+    return;
+  }
+  if (user.status === 'suspended') {
+    if (origArrow) origArrow.innerHTML = '→';
+    document.getElementById('loginErr').textContent = '⛔ Account suspended.';
+    return;
+  }
+  LS.set('currentUser', user);
+  currentUser = user;
+  addLog('auth', '🔐 Quick login: ' + user.name, 'Role: ' + user.role);
+  launchApp(user);
+}
+
+function switchAuthTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('roleCardFarmer').classList.toggle('selected', role === 'farmer');
+  document.getElementById('roleCardConsumer').classList.toggle('selected', role === 'consumer');
+  document.getElementById('farmerFields').classList.toggle('show', role === 'farmer');
+  document.getElementById('consumerFields').classList.toggle('show', role === 'consumer');
+}
+
+async function doLogin() {
+  const email = document.getElementById('li_email').value.trim().toLowerCase();
+  const pass = document.getElementById('li_pass').value;
+  const err = document.getElementById('loginErr');
+  err.textContent = '';
+  if (!email || !pass) { err.textContent = t('full_name').replace(' *','') + ' & ' + t('password') + ' required'; return; }
+  
+  const users = await fbGetAll('users');
+  const user = users.find(u => u.email === email && u.password === pass);
+  if (!user) { err.textContent = 'Invalid email or password'; return; }
+  if (user.status === 'suspended') { err.textContent = '⛔ Account suspended. Contact admin.'; return; }
+  
+  LS.set('currentUser', user);
+  currentUser = user;
+  addLog('auth', `🔐 Login: ${user.name}`, `Role: ${user.role}`);
+  launchApp(user);
+}
+
+async function doRegister() {
+  const name = document.getElementById('re_name').value.trim();
+  const email = document.getElementById('re_email').value.trim().toLowerCase();
+  const pass = document.getElementById('re_pass').value;
+  const err = document.getElementById('registerErr');
+  err.textContent = '';
+  if (!name || !email || !pass) { err.textContent = 'Please fill required fields'; return; }
+  if (pass.length < 6) { err.textContent = 'Password min 6 characters'; return; }
+  
+  const users = await fbGetAll('users');
+  if (users.find(u => u.email === email)) { err.textContent = 'Email already registered'; return; }
+  
+  const user = { id: uid(), name, email, password: pass, role: selectedRole, phone: document.getElementById('re_phone').value.trim(), createdAt: Date.now(), status: 'active' };
+  if (selectedRole === 'farmer') {
+    user.farmName = document.getElementById('re_farm').value.trim() || name + "'s Farm";
+    user.location = document.getElementById('re_loc').value.trim();
+    user.upiId = document.getElementById('re_upi').value.trim();
+  } else {
+    user.address = document.getElementById('re_addr').value.trim();
+  }
+  
+  await fbSet('users', user.id, user);
+  LS.set('currentUser', user);
+  currentUser = user;
+  addLog('auth', `🆕 New user: ${user.name}`, `Role: ${user.role}`);
+  toast(`Welcome, ${name}!`, 'success');
+  launchApp(user);
+}
+
+function doLogout() {
+  unsubscribers.forEach(u => typeof u === 'function' && u());
+  unsubscribers = [];
+  if (currentUser) addLog('auth', `👋 Logout: ${currentUser.name}`, '');
+  currentUser = null;
+  LS.del('currentUser');
+  LS.del('cart');
+  ['authScreen','farmerApp','consumerApp','adminApp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('active'); if (id === 'authScreen') el.classList.add('active'); }
+  });
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('li_email').value = '';
+  document.getElementById('li_pass').value = '';
+}
+
+function launchApp(user) {
+  document.getElementById('authScreen').classList.remove('active');
+  if (user.role === 'farmer') {
+    document.getElementById('farmerApp').classList.add('active');
+    initFarmerApp(user);
+  } else if (user.role === 'admin') {
+    document.getElementById('adminApp').classList.add('active');
+    initAdminApp(user);
+  } else {
+    document.getElementById('consumerApp').classList.add('active');
+    initConsumerApp(user);
+  }
+}
+
+// ══════════════════════════════════════════
+// 5. WEATHER
+// ══════════════════════════════════════════
+const weatherScenarios = [
+  { temp:32, ico:'⛅', desc:'Partly Cloudy', humid:65, wind:14, rain:'15%', uv:'UV 7', vis:'8 km', feels:30, advice:'Ideal irrigation weather. Water crops early morning (6–8 AM) to reduce evaporation. Check soil moisture before evening irrigation.' },
+  { temp:38, ico:'☀️', desc:'Hot & Sunny', humid:45, wind:8, rain:'5%', uv:'UV 10', vis:'12 km', feels:41, advice:'High heat stress risk. Increase irrigation frequency. Apply mulching to retain soil moisture. Avoid pesticide spraying in peak afternoon.' },
+  { temp:26, ico:'🌧️', desc:'Light Rain', humid:85, wind:18, rain:'75%', uv:'UV 2', vis:'4 km', feels:25, advice:'No irrigation needed today. Check for waterlogging. Good time for sowing. Delay pesticide application by 24 hours after rain.' },
+  { temp:29, ico:'🌤️', desc:'Mostly Sunny', humid:58, wind:10, rain:'10%', uv:'UV 8', vis:'10 km', feels:31, advice:'Perfect farming weather! Good conditions for harvesting and field work. Apply fertilisers today for best absorption.' },
+  { temp:22, ico:'🌦️', desc:'Scattered Showers', humid:78, wind:22, rain:'55%', uv:'UV 4', vis:'6 km', feels:21, advice:'Expect rain showers. Skip irrigation today. Good time for transplanting seedlings. Secure loose equipment.' },
+];
+const forecastDays = [
+  [{ico:'☀️',hi:34,lo:22},{ico:'⛅',hi:31,lo:20},{ico:'🌧️',hi:27,lo:19},{ico:'🌦️',hi:29,lo:21},{ico:'☀️',hi:33,lo:22},{ico:'⛅',hi:30,lo:20}],
+  [{ico:'☀️',hi:40,lo:28},{ico:'☀️',hi:39,lo:27},{ico:'⛅',hi:36,lo:25},{ico:'🌧️',hi:31,lo:24},{ico:'🌦️',hi:33,lo:23},{ico:'☀️',hi:37,lo:26}],
+  [{ico:'🌧️',hi:25,lo:18},{ico:'🌦️',hi:27,lo:19},{ico:'⛅',hi:29,lo:20},{ico:'☀️',hi:32,lo:21},{ico:'☀️',hi:33,lo:22},{ico:'⛅',hi:30,lo:20}],
+];
+const dayNames = ['Today','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function initWeather(user) {
+  const s = weatherScenarios[Math.floor(Math.random() * weatherScenarios.length)];
+  const f = forecastDays[Math.floor(Math.random() * forecastDays.length)];
+  document.getElementById('wc_ico').textContent = s.ico;
+  document.getElementById('wc_temp').textContent = s.temp + '°';
+  document.getElementById('wc_desc').textContent = s.desc;
+  document.getElementById('wc_loc').textContent = '📍 ' + (user.location || 'India');
+  document.getElementById('wc_humid').textContent = s.humid + '%';
+  document.getElementById('wc_wind').textContent = s.wind + ' km/h';
+  document.getElementById('wc_rain').textContent = '🌧️ ' + s.rain;
+  document.getElementById('wc_uv').textContent = s.uv;
+  document.getElementById('wc_vis').textContent = s.vis;
+  document.getElementById('wc_feels').textContent = s.feels + '°';
+  document.getElementById('wc_advice').textContent = s.advice;
+  document.getElementById('wc_updated').textContent = 'Updated just now · ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+  const today = new Date().getDay();
+  document.getElementById('wc_forecast').innerHTML = f.slice(0, 6).map((d, i) =>
+    `<div class="wc-day"><div class="wc-day-name">${dayNames[(today + i) % 7]}</div><div class="wc-day-ico">${d.ico}</div><div class="wc-day-temp">${d.hi}°/${d.lo}°</div></div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════
+// 6. FARMER APP
+// ══════════════════════════════════════════
+let fCurrentUser = null, revenueChart = null, categoryChart = null;
+
+function initFarmerApp(user) {
+  fCurrentUser = user;
+  document.getElementById('f_navName').textContent = user.name;
+  const h = new Date().getHours();
+  document.getElementById('f_heroTitle').textContent = `${h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'}, ${user.name}! 🌾`;
+  document.getElementById('ap_loc').value = user.location || '';
+  initWeather(user);
+  fLoadStats(); fLoadRecentOrders(); fLoadMyProducts(); fLoadOrders(); initAI();
+}
+
+function fShowTab(id, btn) {
+  document.querySelectorAll('#farmerApp .app-tab').forEach(t => t.classList.remove('active'));
+  ['f_overview','f_products','f_addproduct','f_orders','f_analytics','f_ai'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('f_' + id).style.display = 'block';
+  if (btn) btn.classList.add('active');
+  else document.querySelectorAll('#farmerApp .app-tab').forEach(t => { if (t.getAttribute('onclick')?.includes(id)) t.classList.add('active'); });
+  if (id === 'analytics') initAnalytics();
+}
+
+async function fLoadStats() {
+  const [prods, orders] = await Promise.all([fbGetAll('products'), fbGetAll('orders')]);
+  const myProds = prods.filter(p => p.farmerId === fCurrentUser.id);
+  const myOrders = orders.filter(o => o.farmerId === fCurrentUser.id);
+  const revenue = myOrders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.totalAmount, 0);
+  document.getElementById('f_s1').textContent = myProds.length;
+  document.getElementById('f_s2').textContent = myOrders.length;
+  document.getElementById('f_s3').textContent = fmtCurr(revenue);
+  document.getElementById('f_s4').textContent = myOrders.filter(o => o.status === 'placed').length;
+}
+
+async function fLoadRecentOrders() {
+  const orders = (await fbGetAll('orders')).filter(o => o.farmerId === fCurrentUser.id).slice(-5).reverse();
+  if (!orders.length) { document.getElementById('f_recentOrders').innerHTML = `<div class="empty"><div class="empty-ico">📦</div><div class="empty-title">${t('no_orders_yet')||'No orders yet'}</div></div>`; return; }
+  document.getElementById('f_recentOrders').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Order ID</th><th>Consumer</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>${orders.map(o => `<tr><td><strong>${o.orderId}</strong></td><td>${o.consumerName}</td><td>${fmtCurr(o.totalAmount)}</td><td>${getStatusBadge(o.status)}</td><td><button class="btn btn-outline btn-sm" onclick="fViewOrder('${o.id}')">View</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function fLoadMyProducts() {
+  const prods = (await fbGetAll('products')).filter(p => p.farmerId === fCurrentUser.id);
+  if (!prods.length) { document.getElementById('f_myProducts').innerHTML = `<div class="empty"><div class="empty-ico">🌾</div><div class="empty-title">${t('my_products')||'No products'}</div><div class="empty-sub">Add your first product!</div></div>`; return; }
+  document.getElementById('f_myProducts').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Sold</th><th>Organic</th><th>Actions</th></tr></thead><tbody>${prods.map(p => `<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:8px;background:var(--parchment);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;border:1px solid var(--border2)">${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover">` : (p.emoji || getCatEmoji(p.category))}</div><div style="font-weight:700;font-size:13px">${p.name}</div></div></td><td>${getCatEmoji(p.category)} ${p.category}</td><td><strong>${fmtCurr(p.price)}</strong>/${p.unit}</td><td style="color:${p.quantity<10?'var(--berry)':'var(--leaf)'};font-weight:700">${p.quantity}</td><td>${p.sold||0}</td><td>${p.organic?'<span class="badge bg-green">🌿</span>':'-'}</td><td><button class="btn btn-red btn-sm" onclick="fDeleteProduct('${p.id}')">🗑️</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function previewImg(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById('ap_previewImg').src = e.target.result; document.getElementById('ap_preview').style.display = 'block'; };
+  reader.readAsDataURL(file);
+}
+
+async function addProduct() {
+  const name = document.getElementById('ap_name').value.trim();
+  const price = parseFloat(document.getElementById('ap_price').value);
+  const qty = parseInt(document.getElementById('ap_qty').value);
+  const msg = document.getElementById('ap_msg');
+  if (!name || !price || !qty) { msg.style.color = 'var(--berry)'; msg.textContent = '❌ Name, price and quantity required'; return; }
+  const imgEl = document.getElementById('ap_previewImg');
+  const image = imgEl.src && imgEl.src !== window.location.href ? imgEl.src : '';
+  const cat = document.getElementById('ap_cat').value;
+  const product = { id: uid(), farmerId: fCurrentUser.id, farmerName: fCurrentUser.name, farmName: fCurrentUser.farmName || fCurrentUser.name + "'s Farm", farmerLocation: fCurrentUser.location || 'India', farmerUpi: fCurrentUser.upiId || '', name, category: cat, description: document.getElementById('ap_desc').value.trim(), price, unit: document.getElementById('ap_unit').value, quantity: qty, location: document.getElementById('ap_loc').value.trim(), organic: document.getElementById('ap_organic').checked, image, emoji: getCatEmoji(cat), rating: 0, sold: 0, createdAt: Date.now(), status: 'active' };
+  await fbSet('products', product.id, product);
+  addLog('product', `🌾 New product: ${product.name}`, `By ${fCurrentUser.name}`);
+  msg.style.color = 'var(--leaf)'; msg.textContent = '✅ ' + (t('list_product_btn').replace('🌱 ','')) + ' listed!';
+  toast(t('list_product_btn'), 'success');
+  ['ap_name','ap_desc','ap_price','ap_qty'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('ap_organic').checked = false;
+  document.getElementById('ap_img').value = ''; document.getElementById('ap_preview').style.display = 'none';
+  fLoadMyProducts(); fLoadStats();
+  setTimeout(() => { msg.textContent = ''; fShowTab('products', null); }, 1500);
+}
+
+async function fDeleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  await fbDelete('products', id);
+  addLog('product', `🗑️ Product deleted`, `By ${fCurrentUser.name}`);
+  toast('Deleted', 'success'); fLoadMyProducts(); fLoadStats();
+}
+
+let fAllOrdersData = [];
+async function fLoadOrders() {
+  fAllOrdersData = (await fbGetAll('orders')).filter(o => o.farmerId === fCurrentUser.id).reverse();
+  fRenderOrdersTable(fAllOrdersData);
+}
+
+function fRenderOrdersTable(orders) {
+  if (!orders.length) { document.getElementById('f_ordersTable').innerHTML = '<div class="empty"><div class="empty-ico">📦</div><div class="empty-title">No orders</div></div>'; return; }
+  document.getElementById('f_ordersTable').innerHTML = `<table><thead><tr><th>Order ID</th><th>Consumer</th><th>Items</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>${orders.map(o => `<tr><td><strong>${o.orderId}</strong></td><td>${o.consumerName}</td><td>${o.items.map(i => i.name).join(', ')}</td><td>${fmtCurr(o.totalAmount)}</td><td>${getStatusBadge(o.status)}</td><td>${fmtDate(o.createdAt)}</td><td style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="fViewOrder('${o.id}')">View</button>${o.status==='placed'?`<button class="btn btn-green btn-sm" onclick="fUpdateStatus('${o.id}','confirmed')">Confirm</button>`:''}${o.status==='confirmed'?`<button class="btn btn-green btn-sm" onclick="fUpdateStatus('${o.id}','dispatched')">Dispatch</button>`:''}${o.status==='dispatched'?`<button class="btn btn-green btn-sm" onclick="fUpdateStatus('${o.id}','delivered')">Delivered</button>`:''}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function fFilterOrders(status, chip) {
+  document.querySelectorAll('#f_orders .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  fRenderOrdersTable(status === 'all' ? fAllOrdersData : fAllOrdersData.filter(o => o.status === status));
+}
+
+async function fUpdateStatus(id, status) {
+  const orders = await fbGetAll('orders');
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  o.status = status;
+  o.statusHistory = o.statusHistory || [];
+  o.statusHistory.push({ status, time: Date.now() });
+  if (status === 'delivered') o.paymentStatus = 'paid';
+  await fbSet('orders', id, o);
+  addLog('order', `📦 Order ${status}: ${o.orderId}`, `By ${fCurrentUser.name}`);
+  toast(`Order ${status}!`, 'success');
+  fLoadOrders(); fLoadRecentOrders(); fLoadStats();
+}
+
+async function fViewOrder(id) {
+  const orders = await fbGetAll('orders');
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('om_content').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Order ID</div><div style="font-size:15px;font-weight:700;font-family:'Lora',serif">${o.orderId}</div></div><div style="text-align:right">${getStatusBadge(o.status)}<br><span style="font-size:10px;color:var(--muted)">${fmtDate(o.createdAt)}</span></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--parchment);border-radius:10px;padding:11px;border:1px solid var(--border2)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px">Consumer</div><div style="font-size:13px;font-weight:700">${o.consumerName}</div><div style="font-size:11px;color:var(--muted)">${o.consumerPhone||''}</div></div>
+      <div style="background:var(--parchment);border-radius:10px;padding:11px;border:1px solid var(--border2)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px">Delivery</div><div style="font-size:12px">${o.address?.address||'N/A'}, ${o.address?.city||''}</div></div>
+    </div>
+    ${o.items.map(i => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px"><span>${i.emoji||'🌱'} ${i.name} × ${i.quantity} ${i.unit}</span><span style="font-weight:700">${fmtCurr(i.price*i.quantity)}</span></div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:14px;font-weight:700"><span>Total</span><span style="color:var(--leaf);font-family:'Lora',serif">${fmtCurr(o.totalAmount)}</span></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      ${o.status==='placed'?`<button class="btn btn-green btn-sm" onclick="fUpdateStatus('${o.id}','confirmed');closeModal('orderModal')">✅ Confirm</button>`:''}
+      ${o.status==='confirmed'?`<button class="btn btn-green btn-sm" onclick="fUpdateStatus('${o.id}','dispatched');closeModal('orderModal')">🚚 Dispatch</button>`:''}
+      ${o.status==='dispatched'?`<button class="btn btn-green btn-sm" onclick="fUpdateStatus('${o.id}','delivered');closeModal('orderModal')">📬 Delivered</button>`:''}
+      <button class="btn btn-outline btn-sm" onclick="closeModal('orderModal')">Close</button>
+    </div>`;
+  openModal('orderModal');
+}
+
+async function initAnalytics() {
+  const [allOrders, allProds] = await Promise.all([fbGetAll('orders'), fbGetAll('products')]);
+  const orders = allOrders.filter(o => o.farmerId === fCurrentUser.id);
+  const prods = allProds.filter(p => p.farmerId === fCurrentUser.id);
+  const paidOrders = orders.filter(o => o.paymentStatus === 'paid');
+  const revenue = paidOrders.reduce((s, o) => s + o.totalAmount, 0);
+  const avgOrder = orders.length ? Math.round(orders.reduce((s, o) => s + o.totalAmount, 0) / orders.length) : 0;
+  const topProduct = [...prods].sort((a, b) => (b.sold||0) - (a.sold||0))[0];
+  document.getElementById('fa_rev').textContent = fmtCurr(revenue);
+  document.getElementById('fa_orders').textContent = orders.length;
+  document.getElementById('fa_avg').textContent = fmtCurr(avgOrder);
+  document.getElementById('fa_top').textContent = topProduct ? topProduct.name.split(' ')[0] : '--';
+  document.getElementById('fa_rev_change').textContent = '↑ +' + Math.floor(Math.random()*30+10) + '% this month';
+  document.getElementById('fa_orders_change').textContent = '↑ +' + Math.floor(Math.random()*15+5) + ' this week';
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const today = new Date().getDay();
+  const labels = Array.from({length:7}, (_, i) => days[(today - 6 + i + 7) % 7]);
+  const revenueData = orders.reduce((acc, o) => {
+    const d = new Date(o.createdAt).getDay();
+    const idx = (d - today + 6 + 7) % 7;
+    if (acc[idx] !== undefined) acc[idx] += o.totalAmount;
+    return acc;
+  }, [0,0,0,0,0,0,0]);
+  if (revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Revenue (₹)', data: revenueData.some(v=>v>0) ? revenueData : [1200,800,1800,600,2200,1400,2800], backgroundColor: 'rgba(42,92,42,0.65)', borderColor: '#2a5c2a', borderWidth: 1, borderRadius: 7, borderSkipped: false }] },
+    options: { responsive:true, maintainAspectRatio:false, scales: { x:{grid:{display:false},ticks:{color:'#a8b89a',font:{family:'DM Sans',size:10}}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#a8b89a',font:{family:'DM Sans',size:10},callback:v=>'₹'+v}} }, plugins:{legend:{display:false}} }
+  });
+  const catData = {};
+  prods.forEach(p => { catData[p.category] = (catData[p.category]||0) + (p.sold||0); });
+  const catLabels = Object.keys(catData).length ? Object.keys(catData) : ['vegetables','fruits','grains'];
+  const catVals = Object.values(catData).length ? Object.values(catData) : [45,25,30];
+  if (categoryChart) categoryChart.destroy();
+  categoryChart = new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: { labels: catLabels.map(c => getCatEmoji(c) + ' ' + c), datasets: [{ data: catVals, backgroundColor: ['rgba(42,92,42,0.8)','rgba(90,173,58,0.8)','rgba(212,162,40,0.8)','rgba(59,130,196,0.8)','rgba(249,115,22,0.8)'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{labels:{color:'#7a8c6a',font:{family:'DM Sans',size:10},padding:10}}} }
+  });
+  document.getElementById('f_productPerf').innerHTML = prods.length ? `<table><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Sold</th><th>Revenue</th><th>Status</th></tr></thead><tbody>${prods.map(p => `<tr><td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">${p.emoji}</span><div><div style="font-weight:700;font-size:12px">${p.name}</div><div style="font-size:10px;color:var(--muted)">${p.category}</div></div></div></td><td>${fmtCurr(p.price)}/${p.unit}</td><td style="color:${p.quantity<10?'var(--berry)':'var(--leaf)'};font-weight:700">${p.quantity}</td><td>${p.sold||0}</td><td style="font-weight:700;color:var(--leaf)">${fmtCurr((p.sold||0)*p.price)}</td><td>${p.quantity>0?'<span class="badge bg-green">Active</span>':'<span class="badge bg-red">Out of Stock</span>'}</td></tr>`).join('')}</tbody></table>` : '<div class="empty"><div class="empty-ico">📦</div><div class="empty-title">No products yet</div></div>';
+}
+
+function switchAnalyticsView(view, chip) { document.querySelectorAll('#f_analytics .chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); }
+
+// ══════════════════════════════════════════
+// 7. AI DISEASE DETECTION
+// ══════════════════════════════════════════
+const diseaseDB = {
+  wheat:{symptoms:['Yellow leaves','Brown spots','White powder','Wilting','Stem rust','Ear blight'],diseases:{'Yellow leaves':{name:'Wheat Rust (Yellow)',conf:94,severity:'High 🔴',spread:'Very High',cause:'Fungal (Puccinia striiformis)',part:'Leaves & Stems',ico:'🌾',treatments:['Apply Propiconazole 25% EC @ 1ml/L immediately','Remove all infected plant material and burn','Increase plant spacing for better air circulation','Apply potassium fertiliser to strengthen immunity','Monitor neighbouring fields — high spread risk']},'Brown spots':{name:'Leaf Blight',conf:87,severity:'Medium 🟡',spread:'Moderate',cause:'Fungal (Bipolaris sorokiniana)',part:'Leaves',ico:'🌾',treatments:['Spray Mancozeb 75% WP @ 2g/L water','Avoid overhead irrigation methods','Apply zinc sulphate foliar spray','Ensure proper field drainage at all times','Repeat treatment spray after 14 days']},'White powder':{name:'Powdery Mildew',conf:91,severity:'Medium 🟡',spread:'High',cause:'Fungal (Blumeria graminis)',part:'Leaves & Spikes',ico:'🌾',treatments:['Apply Sulphur 80% WP @ 3g/L water','Use Trifloxystrobin based fungicide','Remove severely infected plant parts','Avoid excess nitrogen fertilisation','Spray early morning for maximum effectiveness']},'Wilting':{name:'Root Rot',conf:82,severity:'High 🔴',spread:'Low',cause:'Fungal (Fusarium spp.)',part:'Root System',ico:'🌾',treatments:['Drench soil with Carbendazim @ 1g/L','Improve soil drainage immediately','Reduce irrigation frequency','Apply Trichoderma bioagent to root zone','Avoid replanting wheat in same plot']}}},
+  tomato:{symptoms:['Dark spots','Curling leaves','Yellow patches','Fruit rot','Mosaic pattern','White flies'],diseases:{'Dark spots':{name:'Early Blight',conf:96,severity:'High 🔴',spread:'High',cause:'Fungal (Alternaria solani)',part:'Leaves & Fruit',ico:'🍅',treatments:['Spray Chlorothalonil 75% WP @ 2g/L','Remove infected leaves immediately','Stake plants for better airflow','Apply copper-based fungicide weekly','Mulch soil to prevent spore splashing']},'Curling leaves':{name:'Tomato Leaf Curl Virus',conf:89,severity:'Very High 🔴',spread:'Very High',cause:'Viral (TLCV via whitefly)',part:'Leaves',ico:'🍅',treatments:['Control whitefly with Imidacloprid spray','Remove and burn all infected plants','Use yellow sticky traps in field','Plant virus-resistant varieties next season','Apply neem oil spray weekly']},'Fruit rot':{name:'Botrytis Fruit Rot',conf:93,severity:'High 🔴',spread:'Moderate',cause:'Fungal (Botrytis cinerea)',part:'Fruits',ico:'🍅',treatments:['Remove all rotted fruits immediately','Apply Iprodione 50% WP fungicide','Reduce humidity by improving ventilation','Avoid wetting foliage during irrigation','Harvest at right maturity stage']}}},
+  rice:{symptoms:['Brown lesions','Neck rot','Yellow leaves','Sheath blight','Bacterial blight'],diseases:{'Brown lesions':{name:'Rice Blast',conf:92,severity:'High 🔴',spread:'Very High',cause:'Fungal (Pyricularia oryzae)',part:'Leaves & Neck',ico:'🌾',treatments:['Apply Tricyclazole 75% WP @ 0.6g/L','Drain field and dry for 3-4 days','Reduce nitrogen fertiliser application','Use blast-resistant rice varieties','Spray at both tillering and panicle stages']},'Yellow leaves':{name:'Bacterial Leaf Blight',conf:88,severity:'High 🔴',spread:'High',cause:'Bacterial (Xanthomonas oryzae)',part:'Leaves',ico:'🌾',treatments:['Drain excess water from paddy field','Apply copper oxychloride @ 3g/L water','Maintain dry field conditions 2-3 days','Use resistant varieties like IR64, Pusa Basmati','Avoid excess nitrogen application']}}},
+  potato:{symptoms:['Dark lesions','White mold','Brown patches','Leaf roll','Hollow heart'],diseases:{'Dark lesions':{name:'Late Blight',conf:95,severity:'Very High 🔴',spread:'Extremely High',cause:'Oomycete (Phytophthora infestans)',part:'Leaves, Stems & Tubers',ico:'🥔',treatments:['Apply Metalaxyl+Mancozeb fungicide immediately','Destroy all infected material by burning','Avoid overhead irrigation completely','Hill up soil around plant base firmly','Apply preventive fungicide sprays before rain']},'White mold':{name:'Potato Scab',conf:83,severity:'Medium 🟡',spread:'Low',cause:'Bacterial (Streptomyces scabiei)',part:'Tubers',ico:'🥔',treatments:['Lower soil pH to 5.0-5.5 range','Use only certified disease-free seed tubers','Avoid fresh manure application before planting','Maintain consistent soil moisture levels','Rotate crops with non-host plants next season']}}},
+  cotton:{symptoms:['Leaf curl','Boll rot','Wilting','Leaf spots','Red leaves'],diseases:{'Leaf curl':{name:'Cotton Leaf Curl Disease',conf:91,severity:'High 🔴',spread:'Very High',cause:'Viral (CLCuD via whitefly)',part:'Leaves',ico:'🌿',treatments:['Control whitefly with Acetamiprid spray','Rogue out all infected plants early','Apply reflective silver mulches in field','Use tolerant cotton varieties','Monitor and spray neem-based pesticides weekly']},'Wilting':{name:'Fusarium Wilt',conf:86,severity:'High 🔴',spread:'Moderate',cause:'Fungal (Fusarium oxysporum)',part:'Vascular System',ico:'🌿',treatments:['Soil drench with Carbendazim solution','Use wilt-resistant cotton varieties','Improve field drainage immediately','Apply Trichoderma to soil before planting','Crop rotation with non-host crops']}}},
+  maize:{symptoms:['Gray lesions','Ear rot','Downy mildew','Stalk rot','Smut'],diseases:{'Gray lesions':{name:'Gray Leaf Spot',conf:89,severity:'Medium 🟡',spread:'Moderate',cause:'Fungal (Cercospora zeae-maydis)',part:'Leaves',ico:'🌽',treatments:['Apply Azoxystrobin 23% SC @ 1ml/L','Remove infected plant residue from field','Ensure good air circulation between plants','Plant resistant maize hybrid varieties','Avoid planting maize continuously in same field']},'Ear rot':{name:'Fusarium Ear Rot',conf:85,severity:'High 🔴',spread:'Low',cause:'Fungal (Fusarium verticillioides)',part:'Ears & Kernels',ico:'🌽',treatments:['Harvest at proper maturity and dry immediately','Avoid kernel injury during harvesting','Apply fungicide at silking stage preventively','Store only in dry cool conditions below 13% moisture','Use certified resistant hybrid seed next season']}}},
+};
+
+let selectedCrop = 'wheat', selectedSymptoms = new Set();
+function initAI() { renderSymptoms(); }
+function selectCrop(el) { document.querySelectorAll('.crop-opt').forEach(c => c.classList.remove('active')); el.classList.add('active'); selectedCrop = el.dataset.crop; selectedSymptoms.clear(); renderSymptoms(); resetAI(); }
+function renderSymptoms() { const symptoms = diseaseDB[selectedCrop]?.symptoms || []; document.getElementById('symptomPills').innerHTML = symptoms.map(s => `<div class="symptom-pill ${selectedSymptoms.has(s)?'active':''}" onclick="toggleSymptom(this,'${s}')">${s}</div>`).join(''); }
+function toggleSymptom(el, s) { el.classList.toggle('active'); if (selectedSymptoms.has(s)) selectedSymptoms.delete(s); else selectedSymptoms.add(s); }
+function handleAIImage(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { const box = document.getElementById('dr_imgBox'); box.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`; }; reader.readAsDataURL(file); runDiseaseDetect(); }
+function runDiseaseDetect() {
+  if (selectedSymptoms.size === 0 && !document.getElementById('ai_img').files[0]) { toast(t('select_symptoms') || 'Select at least one symptom first', 'error'); return; }
+  document.getElementById('aiUploadBtn').style.display = 'none';
+  document.getElementById('aiSpinner').style.display = 'block';
+  document.getElementById('diseaseResult').style.display = 'none';
+  setTimeout(() => {
+    document.getElementById('aiSpinner').style.display = 'none';
+    const diseases = diseaseDB[selectedCrop]?.diseases || {};
+    let d = null;
+    for (const s of selectedSymptoms) { if (diseases[s]) { d = diseases[s]; break; } }
+    if (!d) { const keys = Object.keys(diseases); d = diseases[keys[0]]; }
+    if (!d) { toast('No disease data found', 'error'); resetAI(); return; }
+    showDiseaseResult(d);
+    addLog('product', `🤖 AI Disease: ${d.name}`, `Crop: ${selectedCrop}`);
+  }, 2000 + Math.random() * 1000);
+}
+function showDiseaseResult(d) {
+  document.getElementById('diseaseResult').style.display = 'block';
+  if (!document.getElementById('ai_img').files[0]) document.getElementById('dr_imgBox').textContent = d.ico;
+  document.getElementById('dr_name').textContent = d.name;
+  document.getElementById('dr_conf').textContent = d.conf + '%';
+  setTimeout(() => { document.getElementById('dr_confFill').style.width = d.conf + '%'; }, 200);
+  document.getElementById('dr_sev').textContent = d.severity;
+  document.getElementById('dr_spread').textContent = d.spread;
+  document.getElementById('dr_cause').textContent = d.cause;
+  document.getElementById('dr_part').textContent = d.part;
+  document.getElementById('dr_treatments').innerHTML = d.treatments.map((t, i) => `<div class="treatment-item"><div class="t-num">${i+1}</div><div>${t}</div></div>`).join('');
+  toast(`${d.name} detected with ${d.conf}% confidence`, 'info');
+}
+function resetAI() { document.getElementById('aiUploadBtn').style.display = 'block'; document.getElementById('aiSpinner').style.display = 'none'; document.getElementById('diseaseResult').style.display = 'none'; document.getElementById('dr_imgBox').textContent = '🌾'; document.getElementById('dr_confFill').style.width = '0%'; document.getElementById('ai_img').value = ''; selectedSymptoms.clear(); renderSymptoms(); }
+
+// ══════════════════════════════════════════
+// 8. CONSUMER APP
+// ══════════════════════════════════════════
+let cCurrentUser = null, cActiveCat = 'all', cSearchQ = '';
+let cartItems = [];
+
+function initConsumerApp(user) {
+  cCurrentUser = user;
+  document.getElementById('c_navName').textContent = user.name;
+  cartItems = LS.get('cart') || [];
+  updateCartBadge();
+  cLoadProducts(); cLoadMyOrders(); cLoadFarmers(); loadRecommendations();
+}
+
+function cShowTab(id, btn) {
+  document.querySelectorAll('#consumerApp .app-tab').forEach(t => t.classList.remove('active'));
+  ['c_shop','c_myorders','c_farmers'].forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
+  document.getElementById('c_' + id).style.display = 'block';
+  if (btn) btn.classList.add('active');
+}
+
+async function loadRecommendations() {
+  const [orders, prods] = await Promise.all([fbGetAll('orders'), fbGetAll('products')]);
+  const myOrders = orders.filter(o => o.consumerId === cCurrentUser.id);
+  const recSection = document.getElementById('c_recommendations');
+  if (!recSection) return;
+  const boughtCats = new Set();
+  myOrders.forEach(o => o.items.forEach(i => { const p = prods.find(x => x.id === i.productId); if (p) boughtCats.add(p.category); }));
+  let recommended = [], reason = '';
+  if (boughtCats.size > 0) { recommended = prods.filter(p => [...boughtCats].some(c => p.category === c) && p.quantity > 0).slice(0, 6); reason = t('based_on_orders') || 'Based on your past orders'; }
+  else { recommended = prods.filter(p => p.quantity > 0).sort((a, b) => b.rating - a.rating).slice(0, 6); reason = t('top_rated') || 'Top rated products'; }
+  const seasonal = prods.filter(p => p.organic && p.quantity > 0).slice(0, 4);
+  let html = '';
+  if (recommended.length) html += `<div class="rec-section"><div class="rec-tag">🎯 ${reason}</div><div class="rec-scroll">${recommended.map(p => `<div class="rec-card" onclick="cViewProduct('${p.id}')"><div class="rec-img" style="background:${getCatBg(p.category)}">${p.image?`<img src="${p.image}">`:(p.emoji||getCatEmoji(p.category))}<span class="prod-badge rec" style="font-size:8px;padding:2px 6px">🎯 For You</span></div><div class="rec-body"><div class="rec-name">${p.name}</div><div class="rec-reason">${p.category}</div><div style="display:flex;align-items:center;justify-content:space-between"><div class="rec-price">${fmtCurr(p.price)}<span style="font-size:9px;font-family:'DM Sans',sans-serif;color:var(--muted);font-weight:400">/${p.unit}</span></div><button class="add-btn" onclick="event.stopPropagation();cAddToCart('${p.id}',1)" style="width:24px;height:24px;font-size:13px">+</button></div></div></div>`).join('')}</div></div>`;
+  if (seasonal.length) html += `<div class="rec-section"><div class="rec-tag">🌿 Organic Picks</div><div class="rec-scroll">${seasonal.map(p => `<div class="rec-card" onclick="cViewProduct('${p.id}')"><div class="rec-img" style="background:${getCatBg(p.category)}">${p.image?`<img src="${p.image}">`:(p.emoji||getCatEmoji(p.category))}<span class="prod-badge organic" style="font-size:8px;padding:2px 6px">🌿 Organic</span></div><div class="rec-body"><div class="rec-name">${p.name}</div><div class="rec-reason">⭐ ${p.rating>0?p.rating.toFixed(1):'New'}</div><div style="display:flex;align-items:center;justify-content:space-between"><div class="rec-price">${fmtCurr(p.price)}<span style="font-size:9px;font-family:'DM Sans',sans-serif;color:var(--muted);font-weight:400">/${p.unit}</span></div><button class="add-btn" onclick="event.stopPropagation();cAddToCart('${p.id}',1)" style="width:24px;height:24px;font-size:13px">+</button></div></div></div>`).join('')}</div></div>`;
+  recSection.innerHTML = html;
+}
+
+async function cLoadProducts() {
+  let prods = await fbGetAll('products');
+  if (cActiveCat !== 'all') prods = prods.filter(p => p.category === cActiveCat);
+  if (cSearchQ) prods = prods.filter(p => p.name.toLowerCase().includes(cSearchQ) || (p.description||'').toLowerCase().includes(cSearchQ) || p.category.toLowerCase().includes(cSearchQ));
+  const grid = document.getElementById('c_productsGrid');
+  if (!prods.length) { grid.innerHTML = '<div class="empty"><div class="empty-ico">🌾</div><div class="empty-title">No products found</div><div class="empty-sub">Try a different filter</div></div>'; return; }
+  grid.innerHTML = `<div class="prod-grid">${prods.map(p => `<div class="prod-card" onclick="cViewProduct('${p.id}')"><div class="prod-img" style="background:${getCatBg(p.category)}">${p.image?`<img src="${p.image}" alt="${p.name}">`:p.emoji||getCatEmoji(p.category)}${p.organic?'<span class="prod-badge organic">🌿 Organic</span>':'<span class="prod-badge fresh">Fresh</span>'}</div><div class="prod-body"><div class="prod-name">${p.name}</div><div class="prod-farmer">👨‍🌾 ${p.farmerName} · 📍 ${p.farmerLocation||''}</div><div class="prod-rating">${'★'.repeat(Math.round(p.rating))||'☆☆☆☆☆'} ${p.rating>0?p.rating.toFixed(1):'New'}</div><div class="prod-footer"><div><div class="prod-price">${fmtCurr(p.price)}<span class="prod-unit">/${p.unit}</span></div><div class="prod-stock" style="color:${p.quantity<10?'var(--berry)':'var(--muted)'}">${p.quantity} ${p.unit} left</div></div><button class="add-btn" onclick="event.stopPropagation();cAddToCart('${p.id}',1)">+</button></div></div></div>`).join('')}</div>`;
+}
+
+function cSetCat(cat, chip) { cActiveCat = cat; document.querySelectorAll('#c_shop .chip[data-cat]').forEach(c => c.classList.remove('active')); chip.classList.add('active'); cLoadProducts(); }
+function cSearchProducts(val) { cSearchQ = val.toLowerCase(); clearTimeout(window._st); window._st = setTimeout(cLoadProducts, 350); }
+
+async function cViewProduct(id) {
+  const prods = await fbGetAll('products');
+  const p = prods.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('pm_title').textContent = p.name;
+  document.getElementById('pm_content').innerHTML = `
+    <div style="height:180px;background:${getCatBg(p.category)};border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden;font-size:72px">${p.image?`<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`:(p.emoji||getCatEmoji(p.category))}</div>
+    <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:10px">
+      <div><div style="font-size:18px;font-weight:700;margin-bottom:3px;font-family:'Lora',serif">${p.name}</div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">👨‍🌾 ${p.farmerName} · ${p.farmName}</div><div style="font-size:11px;color:var(--muted)">📍 ${p.farmerLocation||'India'}</div>${p.organic?'<span class="badge bg-green" style="margin-top:6px;display:inline-block">🌿 Organic</span>':''}<div style="font-size:11px;color:var(--pollen);margin-top:5px">${'★'.repeat(Math.round(p.rating))} ${p.rating>0?p.rating.toFixed(1):'New listing'}</div></div>
+      <div style="text-align:right;flex-shrink:0;margin-left:10px"><div style="font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--leaf)">${fmtCurr(p.price)}</div><div style="font-size:11px;color:var(--muted)">per ${p.unit}</div><div style="font-size:11px;color:${p.quantity<10?'var(--berry)':'var(--muted)'};margin-top:3px">${p.quantity} ${p.unit} available</div></div>
+    </div>
+    ${p.description?`<p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:14px">${p.description}</p>`:''}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <label style="font-size:12px;font-weight:700;color:var(--mid)">Qty:</label>
+      <div style="display:flex;align-items:center;gap:6px;background:var(--parchment);border-radius:20px;padding:4px 10px;border:1px solid var(--border)">
+        <button onclick="const i=document.getElementById('pm_qty');i.value=Math.max(1,parseInt(i.value)-1)" style="width:24px;height:24px;border-radius:50%;border:none;background:var(--white);cursor:pointer;font-size:14px">−</button>
+        <input type="number" id="pm_qty" value="1" min="1" max="${p.quantity}" style="width:44px;text-align:center;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;outline:none">
+        <button onclick="const i=document.getElementById('pm_qty');i.value=Math.min(${p.quantity},parseInt(i.value)+1)" style="width:24px;height:24px;border-radius:50%;border:none;background:var(--white);cursor:pointer;font-size:14px">+</button>
+      </div>
+      <span style="font-size:12px;color:var(--muted)">${p.unit}</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="cAddToCart('${p.id}',parseInt(document.getElementById('pm_qty').value)||1);closeModal('productModal')">🛒 Add to Cart</button>
+      ${p.farmerUpi?`<button class="btn btn-gold" onclick="openUPI('${p.farmerUpi}',${p.price},'${p.name}')">📱 UPI</button>`:''}
+    </div>
+    <div style="margin-top:12px;background:var(--parchment);border:1px solid var(--border2);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--muted);line-height:1.6">💡 <strong>Farm fresh!</strong> Directly from ${p.farmName} — no middlemen.</div>`;
+  openModal('productModal');
+}
+
+function openUPI(upiId, amount, name) { window.location.href = `upi://pay?pa=${upiId}&pn=AgriSmart&am=${amount}&cu=INR&tn=${encodeURIComponent('Payment for ' + name)}`; toast('Opening UPI app...', 'info'); }
+
+async function cAddToCart(productId, qty = 1) {
+  const prods = await fbGetAll('products');
+  const p = prods.find(x => x.id === productId);
+  if (!p) return;
+  if (p.quantity < qty) { toast('Insufficient stock!', 'error'); return; }
+  const existing = cartItems.find(i => i.productId === productId);
+  if (existing) existing.quantity += qty;
+  else cartItems.push({ productId, name: p.name, price: p.price, unit: p.unit, quantity: qty, image: p.image, emoji: p.emoji || getCatEmoji(p.category), farmerId: p.farmerId, farmerName: p.farmerName, farmerUpi: p.farmerUpi });
+  LS.set('cart', cartItems);
+  updateCartBadge();
+  toast(`${p.name} added to cart!`, 'success');
+}
+
+function updateCartBadge() { const total = cartItems.reduce((s, i) => s + i.quantity, 0); const el = document.getElementById('cartCnt'); if (el) { el.textContent = total; el.style.display = total > 0 ? 'flex' : 'none'; } }
+function openCart() { renderCart(0); openModal('cartModal'); }
+
+let checkoutStep = 0, selectedPayment = 'upi';
+let checkoutAddress = {};
+
+function renderCart(step = 0) {
+  checkoutStep = step;
+  const content = document.getElementById('cartContent');
+  if (step === 0) {
+    if (!cartItems.length) { content.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div class="empty-title">Cart is empty</div><div class="empty-sub">Add fresh produce from the shop!</div></div>'; return; }
+    const total = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    content.innerHTML = `<div style="max-height:300px;overflow-y:auto;margin-bottom:14px">${cartItems.map((item, idx) => `<div class="cart-item"><div class="ci-img">${item.image?`<img src="${item.image}">`:item.emoji}</div><div class="ci-info"><div class="ci-name">${item.name}</div><div class="ci-price">${fmtCurr(item.price)}/${item.unit}</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cUpdateQty(${idx},-1)">−</button><span class="qty-num">${item.quantity}</span><button class="qty-btn" onclick="cUpdateQty(${idx},1)">+</button></div><div style="font-size:13px;font-weight:700;color:var(--leaf);min-width:52px;text-align:right">${fmtCurr(item.price*item.quantity)}</div><button onclick="cRemoveFromCart(${idx})" style="background:none;border:none;color:var(--faint);cursor:pointer;font-size:16px;padding:2px 6px">×</button></div>`).join('')}</div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid var(--border);padding-top:12px;margin-bottom:14px"><span>Total (${cartItems.reduce((s,i)=>s+i.quantity,0)} items)</span><span style="color:var(--leaf);font-family:'Lora',serif;font-size:20px">${fmtCurr(total)}</span></div>
+    <button class="btn btn-green btn-full" onclick="renderCart(1)">Proceed to Checkout →</button>`;
+  } else if (step === 1) {
+    content.innerHTML = `<div class="steps"><div class="step-item"><div class="step-circle done">✓</div><div class="step-lbl">Cart</div></div><div class="step-line done"></div><div class="step-item"><div class="step-circle active">2</div><div class="step-lbl">Details</div></div><div class="step-line"></div><div class="step-item"><div class="step-circle">3</div><div class="step-lbl">Payment</div></div><div class="step-line"></div><div class="step-item"><div class="step-circle">✓</div><div class="step-lbl">Done</div></div></div>
+    <div class="fg"><label>Full Name *</label><input type="text" id="ch_name" value="${cCurrentUser.name||''}" placeholder="Your name"></div>
+    <div class="fg"><label>Phone *</label><input type="tel" id="ch_phone" value="${cCurrentUser.phone||''}" placeholder="+91 XXXXX XXXXX"></div>
+    <div class="fg"><label>Delivery Address *</label><textarea id="ch_addr" rows="2" placeholder="House no, Street, Area">${cCurrentUser.address||''}</textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fg"><label>City</label><input type="text" id="ch_city" placeholder="City"></div><div class="fg"><label>Pincode</label><input type="text" id="ch_pin" placeholder="Pincode"></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px"><button class="btn btn-outline btn-full" onclick="renderCart(0)">← Back</button><button class="btn btn-green btn-full" onclick="validateDelivery()">Continue →</button></div>`;
+  } else if (step === 2) {
+    const total = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    content.innerHTML = `<div class="steps"><div class="step-item"><div class="step-circle done">✓</div><div class="step-lbl">Cart</div></div><div class="step-line done"></div><div class="step-item"><div class="step-circle done">✓</div><div class="step-lbl">Details</div></div><div class="step-line done"></div><div class="step-item"><div class="step-circle active">3</div><div class="step-lbl">Payment</div></div><div class="step-line"></div><div class="step-item"><div class="step-circle">✓</div><div class="step-lbl">Done</div></div></div>
+    <div style="margin-bottom:12px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid)">Payment Method</div>
+    <div class="pay-opt selected" onclick="selectPay(this,'upi')"><div class="pay-ico">📱</div><div style="flex:1"><div style="font-size:13px;font-weight:700">UPI Payment</div><div style="font-size:10.5px;color:var(--muted)">GPay, PhonePe, Paytm</div></div><div class="pay-radio on"></div></div>
+    <div class="pay-opt" onclick="selectPay(this,'cod')"><div class="pay-ico">💵</div><div style="flex:1"><div style="font-size:13px;font-weight:700">Cash on Delivery</div><div style="font-size:10.5px;color:var(--muted)">Pay when your order arrives</div></div><div class="pay-radio"></div></div>
+    <div style="background:var(--parchment);border-radius:12px;padding:13px;margin:14px 0;font-size:13px;border:1px solid var(--border2)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--muted)">Subtotal</span><span>${fmtCurr(total)}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--muted)">Delivery</span><span style="color:var(--leaf3);font-weight:700">FREE 🎉</span></div>
+      <div style="display:flex;justify-content:space-between;font-weight:700;font-size:15px;border-top:1px solid var(--border);padding-top:8px;margin-top:6px"><span>Total</span><span style="color:var(--leaf);font-family:'Lora',serif;font-size:18px">${fmtCurr(total)}</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn btn-outline btn-full" onclick="renderCart(1)">← Back</button><button class="btn btn-green btn-full" onclick="placeOrder()">Place Order ✓</button></div>`;
+  }
+}
+
+function selectPay(el, method) {
+  selectedPayment = method;
+  document.querySelectorAll('.pay-opt').forEach(o => { o.classList.remove('selected'); o.querySelector('.pay-radio')?.classList.remove('on'); });
+  el.classList.add('selected'); el.querySelector('.pay-radio').classList.add('on');
+}
+function validateDelivery() {
+  const name = document.getElementById('ch_name')?.value.trim();
+  const addr = document.getElementById('ch_addr')?.value.trim();
+  if (!name || !addr) { toast('Name and address required', 'error'); return; }
+  checkoutAddress = { name, phone: document.getElementById('ch_phone')?.value, address: addr, city: document.getElementById('ch_city')?.value, pincode: document.getElementById('ch_pin')?.value };
+  renderCart(2);
+}
+function cUpdateQty(idx, delta) { cartItems[idx].quantity = Math.max(1, cartItems[idx].quantity + delta); LS.set('cart', cartItems); updateCartBadge(); renderCart(0); }
+function cRemoveFromCart(idx) { cartItems.splice(idx, 1); LS.set('cart', cartItems); updateCartBadge(); renderCart(0); }
+
+async function placeOrder() {
+  const total = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+  const farmerId = cartItems[0]?.farmerId || '';
+  const farmerName = cartItems[0]?.farmerName || '';
+  const farmerUpi = cartItems[0]?.farmerUpi || '';
+  const order = { id: uid(), orderId: 'AGR' + Date.now().toString().slice(-8), consumerId: cCurrentUser.id, consumerName: checkoutAddress.name || cCurrentUser.name, consumerPhone: checkoutAddress.phone || cCurrentUser.phone, farmerId, farmerName, items: cartItems.map(i => ({...i})), totalAmount: total, address: checkoutAddress, paymentMethod: selectedPayment, paymentStatus: 'pending', status: 'placed', statusHistory: [{ status:'placed', time: Date.now() }], createdAt: Date.now() };
+  await fbSet('orders', order.id, order);
+  const prods = await fbGetAll('products');
+  for (const item of cartItems) {
+    const p = prods.find(x => x.id === item.productId);
+    if (p) { p.quantity = Math.max(0, p.quantity - item.quantity); await fbSet('products', p.id, p); }
+  }
+  if (selectedPayment === 'upi' && farmerUpi) window.location.href = `upi://pay?pa=${farmerUpi}&pn=AgriSmart&am=${total}&cu=INR&tn=${encodeURIComponent('Order ' + order.orderId)}`;
+  addLog('order', `🛒 New order: ${order.orderId}`, `By ${cCurrentUser.name} — ${fmtCurr(total)}`);
+  cartItems = []; LS.del('cart'); updateCartBadge();
+  document.getElementById('cartContent').innerHTML = `<div class="success-screen"><div class="success-ico">🎉</div><div class="success-title">Order Placed!</div><div class="success-sub">Your fresh produce is on its way! The farmer has been notified.</div><div class="order-id-box">Order ID: #${order.orderId}</div><button class="btn btn-green btn-full" style="margin-bottom:10px" onclick="closeModal('cartModal');cShowTab('myorders',document.querySelector('[onclick*=myorders]'));cLoadMyOrders()">📦 Track Order</button><button class="btn btn-outline btn-full" onclick="closeModal('cartModal');cLoadProducts();loadRecommendations()">🛒 Continue Shopping</button></div>`;
+  cLoadMyOrders(); cLoadProducts(); loadRecommendations(); toast('Order placed!', 'success');
+}
+
+async function cLoadMyOrders() {
+  const orders = (await fbGetAll('orders')).filter(o => o.consumerId === cCurrentUser.id).reverse();
+  const el = document.getElementById('c_ordersList');
+  if (!orders.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">📦</div><div class="empty-title">No orders yet</div><div class="empty-sub">Start shopping!</div></div>'; return; }
+  const statusSteps = [
+    { key:'placed', name:'Order Placed', icon:'📝', detail:'Your order has been received' },
+    { key:'confirmed', name:'Confirmed', icon:'✅', detail:'Farmer confirmed your order' },
+    { key:'packed', name:'Packed', icon:'📦', detail:'Order packed and ready' },
+    { key:'dispatched', name:'Out for Delivery', icon:'🚚', detail:'On the way to your address' },
+    { key:'delivered', name:'Delivered', icon:'🏠', detail:'Order delivered successfully' },
+  ];
+  el.innerHTML = orders.map(o => {
+    const currentIdx = statusSteps.findIndex(s => s.key === o.status);
+    const estimatedDelivery = new Date(o.createdAt + 86400000 * 2).toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+    const riders = ['Ravi Kumar','Suresh Singh','Priya Joshi','Amit Yadav'];
+    const rider = riders[Math.abs(o.id.charCodeAt(3)) % riders.length];
+    const phones = ['+91 98765 11111','+91 87654 22222','+91 76543 33333','+91 65432 44444'];
+    const riderPhone = phones[Math.abs(o.id.charCodeAt(3)) % phones.length];
+    return `<div style="background:var(--parchment);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:14px">
+        <div><div style="font-size:13px;font-weight:700;font-family:'Lora',serif">${o.orderId}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">👨‍🌾 ${o.farmerName} · ${fmtDate(o.createdAt)}</div></div>
+        <div style="text-align:right"><div style="font-family:'Lora',serif;font-size:17px;font-weight:700;color:var(--leaf)">${fmtCurr(o.totalAmount)}</div>${getStatusBadge(o.status)}</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${o.items.map(i => `${i.emoji||'🌱'} ${i.name} × ${i.quantity} ${i.unit}`).join(' · ')}</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--mid);margin-bottom:12px">📍 Delivery Tracking</div>
+      <div class="track-timeline">
+        ${statusSteps.map((s, idx) => {
+          const done = idx < currentIdx; const active = idx === currentIdx; const isLast = idx === statusSteps.length - 1;
+          const stepTime = o.statusHistory?.find(h => h.status === s.key);
+          return `<div class="track-step"><div class="ts-col"><div class="ts-dot ${done?'done':active?'active':''}">${done?'✓':active?'●':''}</div>${!isLast?`<div class="ts-line ${done?'done':''}"></div>`:''}</div><div class="ts-info"><div class="ts-name" style="color:${active?'var(--leaf)':done?'var(--dark)':'var(--faint)'}">${s.icon} ${s.name}</div><div class="ts-detail">${s.detail}</div>${active||done?`<div class="ts-time">${stepTime?fmtTime(stepTime.time):active?'Just now':''}</div>`:''}${active&&s.key==='dispatched'?`<div class="delivery-map"><div class="delivery-rider">🏍️</div><div class="delivery-info"><div class="delivery-eta">Est. by ${estimatedDelivery}</div><div class="delivery-detail">Rider: ${rider} · ${riderPhone}</div></div></div>`:''}</div></div>`;
+        }).join('')}
+      </div>
+      ${o.status==='placed'&&o.paymentMethod==='upi'&&o.farmerUpi?`<div style="margin-top:12px"><button class="btn btn-gold btn-sm" onclick="openUPI('${o.farmerUpi}',${o.totalAmount},'Order ${o.orderId}')">📱 Pay Now via UPI</button></div>`:''}
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Payment: ${o.paymentMethod==='cod'?'💵 Cash on Delivery':'📱 UPI'} · ${getStatusBadge(o.paymentStatus)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function cLoadFarmers() {
+  const users = (await fbGetAll('users')).filter(u => u.role === 'farmer');
+  const prods = await fbGetAll('products');
+  const orders = await fbGetAll('orders');
+  const el = document.getElementById('c_farmersList');
+  if (!users.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">👨‍🌾</div><div class="empty-title">No farmers yet</div></div>'; return; }
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">${users.map(f => { const fp = prods.filter(p => p.farmerId === f.id); const del = orders.filter(o => o.farmerId === f.id && o.status === 'delivered').length; return `<div style="background:var(--parchment);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;transition:all 0.22s;cursor:pointer" onmouseover="this.style.boxShadow='var(--sh2)'" onmouseout="this.style.boxShadow='none'"><div style="font-size:44px;margin-bottom:8px">👨‍🌾</div><div style="font-size:14px;font-weight:700;margin-bottom:2px;font-family:'Lora',serif">${f.name}</div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">${f.farmName||'Farm'}</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px">📍 ${f.location||'India'}</div><div style="display:flex;justify-content:center;gap:14px"><div><div style="font-size:15px;font-weight:700;color:var(--leaf)">${fp.length}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Products</div></div><div><div style="font-size:15px;font-weight:700;color:var(--leaf)">${del}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Delivered</div></div></div></div>`; }).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════
+// 9. ADMIN APP
+// ══════════════════════════════════════════
+let adminCharts = {};
+
+function initAdminApp(user) {
+  document.getElementById('a_navName').textContent = user.name;
+  aLoadDashboard();
+}
+
+function aShowTab(id, btn) {
+  document.querySelectorAll('#adminApp .app-tab').forEach(t => t.classList.remove('active'));
+  ['a_dashboard','a_users','a_products','a_orders','a_moderation','a_logs'].forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
+  document.getElementById('a_' + id).style.display = 'block';
+  if (btn) btn.classList.add('active');
+  const map = { dashboard: aLoadDashboard, users: aLoadUsers, products: aLoadAdminProducts, orders: aLoadAdminOrders, moderation: aLoadModeration, logs: renderLogs };
+  map[id]?.();
+}
+
+async function aLoadDashboard() {
+  const [users, prods, orders] = await Promise.all([fbGetAll('users'), fbGetAll('products'), fbGetAll('orders')]);
+  const farmers = users.filter(u => u.role === 'farmer');
+  const consumers = users.filter(u => u.role === 'consumer');
+  const revenue = orders.filter(o => o.paymentStatus === 'paid').reduce((s, o) => s + o.totalAmount, 0);
+  const pendingOrders = orders.filter(o => o.status === 'placed').length;
+  document.getElementById('a_totalUsers').textContent = users.filter(u => u.role !== 'admin').length;
+  document.getElementById('a_totalProducts').textContent = prods.length;
+  document.getElementById('a_totalOrders').textContent = orders.length;
+  document.getElementById('a_totalRevenue').textContent = fmtCurr(revenue);
+  document.getElementById('a_farmers').textContent = farmers.length;
+  document.getElementById('a_consumers').textContent = consumers.length;
+  document.getElementById('a_pendingOrders').textContent = pendingOrders;
+  document.getElementById('a_flagged').textContent = prods.filter(p => p.status === 'flagged').length;
+
+  // Revenue chart
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const today = new Date().getDay();
+  const labels = Array.from({length:7}, (_, i) => days[(today - 6 + i + 7) % 7]);
+  const revenueData = orders.reduce((acc, o) => {
+    const d = new Date(o.createdAt).getDay();
+    const idx = (d - today + 6 + 7) % 7;
+    if (acc[idx] !== undefined) acc[idx] += o.totalAmount;
+    return acc;
+  }, [0,0,0,0,0,0,0]);
+  if (adminCharts.revenue) adminCharts.revenue.destroy();
+  adminCharts.revenue = new Chart(document.getElementById('adminRevenueChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Revenue', data: revenueData.some(v=>v>0) ? revenueData : [1200,2400,1800,3200,2800,4100,3600], borderColor: 'var(--berry)', backgroundColor: 'rgba(192,57,43,0.08)', fill: true, tension: 0.4, pointBackgroundColor: 'var(--berry)', pointRadius: 4 }] },
+    options: { responsive:true, maintainAspectRatio:false, scales: { x:{grid:{display:false},ticks:{color:'#a8b89a',font:{size:10}}}, y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#a8b89a',font:{size:10},callback:v=>'₹'+v}} }, plugins:{legend:{display:false}} }
+  });
+  if (adminCharts.user) adminCharts.user.destroy();
+  adminCharts.user = new Chart(document.getElementById('adminUserChart'), {
+    type: 'doughnut',
+    data: { labels: ['👨‍🌾 Farmers','🛒 Consumers'], datasets: [{ data: [farmers.length||2, consumers.length||5], backgroundColor: ['rgba(42,92,42,0.8)','rgba(59,130,196,0.8)'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{labels:{color:'#7a8c6a',font:{family:'DM Sans',size:10},padding:10}}} }
+  });
+}
+
+async function aLoadUsers() {
+  const users = (await fbGetAll('users')).filter(u => u.role !== 'admin');
+  renderUsersTable(users);
+  document.getElementById('a_farmerCount').textContent = users.filter(u=>u.role==='farmer').length + ' Farmers';
+  document.getElementById('a_consumerCount').textContent = users.filter(u=>u.role==='consumer').length + ' Consumers';
+}
+
+let allAdminUsers = [];
+function renderUsersTable(users) {
+  allAdminUsers = users;
+  if (!users.length) { document.getElementById('a_usersTable').innerHTML = '<div class="empty"><div class="empty-ico">👥</div><div class="empty-title">No users found</div></div>'; return; }
+  document.getElementById('a_usersTable').innerHTML = `<table><thead><tr><th>User</th><th>Role</th><th>Contact</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${users.map(u => `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="user-av ${u.role}">${u.role==='farmer'?'👨‍🌾':'🛒'}</div><div><div style="font-weight:700;font-size:13px">${u.name}</div><div style="font-size:11px;color:var(--muted)">${u.email}</div></div></div></td><td>${getStatusBadge(u.role)}</td><td style="font-size:11px;color:var(--muted)">${u.phone||'-'}</td><td style="font-size:11px;color:var(--muted)">${fmtDate(u.createdAt)}</td><td>${getStatusBadge(u.status||'active')}</td><td style="display:flex;gap:5px"><button class="btn btn-outline btn-sm" onclick="aViewUser('${u.id}')">View</button>${u.status!=='suspended'?`<button class="btn btn-red btn-sm" onclick="aSuspendUser('${u.id}')">Suspend</button>`:`<button class="btn btn-green btn-sm" onclick="aUnsuspendUser('${u.id}')">Restore</button>`}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function aFilterUsers(val) {
+  const filtered = allAdminUsers.filter(u => u.name.toLowerCase().includes(val.toLowerCase()) || u.email.toLowerCase().includes(val.toLowerCase()));
+  renderUsersTable(filtered);
+}
+
+async function aViewUser(id) {
+  const users = await fbGetAll('users');
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  const prods = (await fbGetAll('products')).filter(p => p.farmerId === id);
+  const orders = await fbGetAll('orders');
+  const userOrders = orders.filter(o => o.consumerId === id || o.farmerId === id);
+  document.getElementById('um_content').innerHTML = `
+    <div style="text-align:center;padding:16px 0 20px">
+      <div style="font-size:60px;margin-bottom:8px">${u.role==='farmer'?'👨‍🌾':'🛒'}</div>
+      <div style="font-family:'Lora',serif;font-size:20px;font-weight:700">${u.name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">${u.email}</div>
+      <div style="margin-top:8px">${getStatusBadge(u.role)} ${getStatusBadge(u.status||'active')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:var(--parchment);border-radius:10px;padding:12px;border:1px solid var(--border2)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Phone</div><div style="font-size:13px;font-weight:700;margin-top:3px">${u.phone||'N/A'}</div></div>
+      <div style="background:var(--parchment);border-radius:10px;padding:12px;border:1px solid var(--border2)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Joined</div><div style="font-size:13px;font-weight:700;margin-top:3px">${fmtDate(u.createdAt)}</div></div>
+      ${u.role==='farmer'?`<div style="background:var(--parchment);border-radius:10px;padding:12px;border:1px solid var(--border2)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Farm</div><div style="font-size:13px;font-weight:700;margin-top:3px">${u.farmName||'N/A'}</div></div>`:''}
+      <div style="background:var(--parchment);border-radius:10px;padding:12px;border:1px solid var(--border2)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">Orders</div><div style="font-size:13px;font-weight:700;margin-top:3px">${userOrders.length}</div></div>
+    </div>
+    ${u.role==='farmer'?`<div style="margin-bottom:10px;font-size:12px;color:var(--muted)">${prods.length} products listed · ${fmtCurr(prods.reduce((s,p)=>s+(p.sold||0)*p.price,0))} total sales</div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${u.status!=='suspended'?`<button class="btn btn-red btn-sm" onclick="aSuspendUser('${u.id}');closeModal('userModal')">🚫 Suspend</button>`:`<button class="btn btn-green btn-sm" onclick="aUnsuspendUser('${u.id}');closeModal('userModal')">✅ Restore</button>`}
+      <button class="btn btn-outline btn-sm" onclick="closeModal('userModal')">Close</button>
+    </div>`;
+  openModal('userModal');
+}
+
+async function aSuspendUser(id) {
+  if (!confirm('Suspend this user? They will not be able to login.')) return;
+  const users = await fbGetAll('users');
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  u.status = 'suspended';
+  await fbSet('users', id, u);
+  addLog('admin', `🚫 User suspended: ${u.name}`, `By admin`);
+  toast('User suspended', 'info');
+  aLoadUsers();
+}
+
+async function aUnsuspendUser(id) {
+  const users = await fbGetAll('users');
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  u.status = 'active';
+  await fbSet('users', id, u);
+  addLog('admin', `✅ User restored: ${u.name}`, `By admin`);
+  toast('User restored', 'success');
+  aLoadUsers();
+}
+
+async function aLoadAdminProducts() {
+  const prods = await fbGetAll('products');
+  document.getElementById('a_productStats').textContent = `${prods.length} total · ${prods.filter(p=>p.organic).length} organic · ${prods.filter(p=>p.quantity===0).length} out of stock`;
+  document.getElementById('a_productsTable').innerHTML = `<table><thead><tr><th>Product</th><th>Farmer</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>${prods.map(p => `<tr><td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">${p.emoji||getCatEmoji(p.category)}</span><strong style="font-size:12px">${p.name}</strong></div></td><td style="font-size:12px;color:var(--muted)">${p.farmerName}</td><td>${getCatEmoji(p.category)} ${p.category}</td><td>${fmtCurr(p.price)}/${p.unit}</td><td style="color:${p.quantity<10?'var(--berry)':'var(--leaf)'};font-weight:700">${p.quantity}</td><td>${getStatusBadge(p.status||'active')}</td><td style="display:flex;gap:5px">${p.status!=='flagged'?`<button class="btn btn-orange btn-sm" onclick="aFlagProduct('${p.id}')">🚩 Flag</button>`:`<button class="btn btn-green btn-sm" onclick="aApproveProduct('${p.id}')">✅ Approve</button>`}<button class="btn btn-red btn-sm" onclick="aDeleteProduct('${p.id}')">🗑️</button></td></tr>`).join('')}</tbody></table>`;
+}
+
+async function aFlagProduct(id) {
+  const prods = await fbGetAll('products');
+  const p = prods.find(x => x.id === id);
+  if (!p) return;
+  p.status = 'flagged';
+  await fbSet('products', id, p);
+  addLog('admin', `🚩 Product flagged: ${p.name}`, `By admin`);
+  toast('Product flagged', 'info'); aLoadAdminProducts();
+}
+async function aApproveProduct(id) {
+  const prods = await fbGetAll('products');
+  const p = prods.find(x => x.id === id);
+  if (!p) return;
+  p.status = 'active';
+  await fbSet('products', id, p);
+  addLog('admin', `✅ Product approved: ${p.name}`, `By admin`);
+  toast('Product approved', 'success'); aLoadAdminProducts();
+}
+async function aDeleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  const prods = await fbGetAll('products');
+  const p = prods.find(x => x.id === id);
+  await fbDelete('products', id);
+  addLog('admin', `🗑️ Product deleted: ${p?.name||id}`, `By admin`);
+  toast('Deleted', 'success'); aLoadAdminProducts();
+}
+
+let aAllOrders = [];
+async function aLoadAdminOrders() {
+  aAllOrders = (await fbGetAll('orders')).reverse();
+  aRenderOrdersTable(aAllOrders);
+}
+function aRenderOrdersTable(orders) {
+  if (!orders.length) { document.getElementById('a_ordersTable').innerHTML = '<div class="empty"><div class="empty-ico">📦</div><div class="empty-title">No orders</div></div>'; return; }
+  document.getElementById('a_ordersTable').innerHTML = `<table><thead><tr><th>Order ID</th><th>Consumer</th><th>Farmer</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th></tr></thead><tbody>${orders.map(o => `<tr><td><strong>${o.orderId}</strong></td><td>${o.consumerName}</td><td>${o.farmerName}</td><td>${fmtCurr(o.totalAmount)}</td><td>${getStatusBadge(o.paymentStatus)}</td><td>${getStatusBadge(o.status)}</td><td style="font-size:11px;color:var(--muted)">${fmtDate(o.createdAt)}</td></tr>`).join('')}</tbody></table>`;
+}
+function aFilterOrders(status, chip) {
+  document.querySelectorAll('#a_orders .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  aRenderOrdersTable(status === 'all' ? aAllOrders : aAllOrders.filter(o => o.status === status));
+}
+
+async function aLoadModeration() {
+  const prods = await fbGetAll('products');
+  const flagged = prods.filter(p => p.status === 'flagged');
+  document.getElementById('a_modCount').textContent = flagged.length + ' items';
+  aModTab('products', document.querySelector('.admin-tab.active') || document.querySelector('.admin-tab'));
+}
+
+async function aModTab(type, el) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const prods = await fbGetAll('products');
+  const users = await fbGetAll('users');
+  const content = document.getElementById('a_modContent');
+  if (type === 'products') {
+    const flagged = prods.filter(p => p.status === 'flagged');
+    if (!flagged.length) { content.innerHTML = '<div class="empty"><div class="empty-ico">✅</div><div class="empty-title">No flagged products</div></div>'; return; }
+    content.innerHTML = flagged.map(p => `<div class="moderation-item"><div class="mod-ico">${p.emoji||getCatEmoji(p.category)}</div><div class="mod-info"><div class="mod-name">${p.name}</div><div class="mod-meta">By ${p.farmerName} · ${getCatEmoji(p.category)} ${p.category} · ${fmtCurr(p.price)}/${p.unit}</div></div><div class="mod-actions"><button class="btn btn-green btn-sm" onclick="aApproveProduct('${p.id}')">✅ Approve</button><button class="btn btn-red btn-sm" onclick="aDeleteProduct('${p.id}')">🗑️ Remove</button></div></div>`).join('');
+  } else if (type === 'users') {
+    const newUsers = users.filter(u => u.role !== 'admin' && Date.now() - u.createdAt < 86400000 * 7);
+    if (!newUsers.length) { content.innerHTML = '<div class="empty"><div class="empty-ico">👤</div><div class="empty-title">No new users this week</div></div>'; return; }
+    content.innerHTML = newUsers.map(u => `<div class="moderation-item"><div class="mod-ico">${u.role==='farmer'?'👨‍🌾':'🛒'}</div><div class="mod-info"><div class="mod-name">${u.name}</div><div class="mod-meta">${u.email} · ${u.role} · Joined ${fmtDate(u.createdAt)}</div></div><div class="mod-actions"><button class="btn btn-red btn-sm" onclick="aSuspendUser('${u.id}')">🚫 Suspend</button></div></div>`).join('');
+  } else {
+    content.innerHTML = '<div class="empty"><div class="empty-ico">🚨</div><div class="empty-title">No reports filed</div><div class="empty-sub">User reports will appear here</div></div>';
+  }
+}
+
+// ══════════════════════════════════════════
+// 10. PWA SETUP
+// ══════════════════════════════════════════
+function setupPWA() {
+  // Generate manifest dynamically
+  const manifest = {
+    name: 'AgriSmart Connect PLUS',
+    short_name: 'AgriSmart',
+    description: 'Farm-to-table marketplace with AI disease detection',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#faf6ef',
+    theme_color: '#2a5c2a',
+    icons: [
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232a5c2a'/><text y='.9em' font-size='72' x='12'>🌱</text></svg>", sizes: '192x192', type: 'image/svg+xml' },
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  document.getElementById('pwaManifest').href = URL.createObjectURL(blob);
+
+  // Service worker registration
+  if ('serviceWorker' in navigator) {
+    const swContent = `
+      const CACHE = 'agrismart-v1';
+      const ASSETS = ['/'];
+      self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))));
+      self.addEventListener('fetch', e => e.respondWith(
+        caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('/')))
+      ));
+    `;
+    const swBlob = new Blob([swContent], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL).catch(() => {});
+  }
+
+  // Install prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('pwaBanner').classList.add('show');
+  });
+  document.getElementById('pwaInstallBtn').addEventListener('click', () => {
+    if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { document.getElementById('pwaBanner').classList.remove('show'); deferredPrompt = null; }); }
+  });
+  window.addEventListener('appinstalled', () => { document.getElementById('pwaBanner').classList.remove('show'); toast('App installed!', 'success'); addLog('system', '📲 App installed to home screen', ''); });
+}
+
+// ══════════════════════════════════════════
+// 11. INIT
+// ══════════════════════════════════════════
+function init() {
+  setupPWA();
+  applyTranslations();
+
+  // Set active lang button
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    if (btn.getAttribute('onclick')?.includes(`'${currentLang}'`)) btn.classList.add('active');
+  });
+
+  // Check for saved Firebase config
+  const savedConfig = LS.get('fbconfig');
+  if (savedConfig) {
+    setupFirebase(savedConfig);
+  } else {
+    // Show setup or go demo
+    document.getElementById('fbSetup').style.display = 'block';
+    // Auto-use demo mode after 1s if user doesn't interact
+    // (so the app still works without Firebase)
+    setTimeout(() => {
+      if (!firebaseReady) useDemoMode();
+    }, 1500);
+  }
+
+  // Auto-login
+  const savedUser = LS.get('currentUser');
+  if (savedUser) {
+    currentUser = savedUser;
+    setTimeout(() => launchApp(savedUser), 800);
+  }
+
+  addLog('system', '🚀 App started', navigator.onLine ? 'Online' : 'Offline');
+
+  // Online/offline monitoring
+  window.addEventListener('online', () => { setSyncDots('online'); toast('Back online — syncing...', 'info'); });
+  window.addEventListener('offline', () => { setSyncDots('offline'); toast('Offline mode — changes saved locally', 'info'); });
+}
+
+init();
+</script>
+</body>
+</html>
